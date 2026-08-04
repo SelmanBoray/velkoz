@@ -130,6 +130,40 @@ def _fold(s: str) -> str:
     return s.translate(_ASCII).lower()
 
 
+# ── Türkçe ek doğrulaması: kök eşleşmesinin GERÇEK olduğunu kanıtlar ──
+# SORUN (4 Ağu 2026 teşhisi): düz `startswith` eşleşmesi kökü başka kelimelerin içinde de
+# yakalıyordu. "kar" kökü → "kar‑anlık", "kar‑ayolu", "kar‑şı", "kar‑deş"… Sonuç zincirleme:
+# "karanlıkta ilerleyen araçlar" sorgusunda nesne hedefi `snow` çıkıyor, VLM'e "bu görüntüde
+# KAR var mı?" soruluyor, kar olmadığı için CLIP'in getirdiği DOĞRU 9 aday da eleniyor ve
+# sorgu yanlışlıkla "bulunamadı" dönüyordu (eval'de `false_gate`). CCTV bağlamında
+# "karayolunda ilerleyen araçlar" da aynı tuzağa düşerdi.
+# ÇÖZÜM: kökten sonra kalan parça geçerli bir Türkçe ek dizisi olmalı. Metin `_fold`'dan
+# geçtiği için burada yalnız ASCII sesliler (a/e/i/o/u) görülür.
+_EK_DIZISI = re.compile(
+    r"^(?:l[ae]r)?"                                                    # çoğul
+    r"(?:[iu]m|[iu]n|[iu]z|[iu]|s[iu])?"                               # iyelik
+    r"(?:n?[iu]n|y?[ae]|y?[iu]|d[ae]n|t[ae]n|d[ae]|t[ae]|yl[ae]|l[ae])?"  # hâl
+    r"(?:l[iu]|s[iu]z|ki|ci|ce|lik)?$"                                 # yapım
+)
+
+
+def _kok_eslesir(token: str, kok: str) -> bool:
+    """`token`, `kok`'ün çekimli bir hâli mi? (düz prefix eşleşmesi DEĞİL)
+
+    Bilinen sınır: kök + tek sesli ("kar"+"a" → "kara") dilbilgisel olarak geçerli bir
+    yönelme hâlidir, bu yüzden ayırt edilemez. Tam çözüm morfolojik analiz ister; yaygın
+    çakışmaların tamamı (‑anlık, ‑ayolu, ‑şı, ‑deş, ‑akter) bu kontrolle eleniyor.
+    """
+    if not token.startswith(kok):
+        return False
+    return bool(_EK_DIZISI.match(token[len(kok):]))
+
+
+def _herhangi_kok(token: str, kokler) -> bool:
+    """Token, verilen köklerden herhangi birinin çekimli hâli mi."""
+    return any(_kok_eslesir(token, k) for k in kokler)
+
+
 # (folded_kök, YOLO sınıf adı) — prefix eşleşir: arabalar→araba, insanı→insan, otobüsler→otobüs
 _CLASS_ROOTS: list[tuple[str, str]] = [
     ("insan", "insan"), ("adam", "insan"), ("kisi", "insan"), ("kadin", "insan"),
@@ -165,14 +199,14 @@ def extract_object_intent(visual_text: str) -> ObjectIntent:
             continue
         hit = None
         for root, cls in _CLASS_ROOTS:
-            if tok.startswith(root):
+            if _kok_eslesir(tok, root):
                 hit = cls
                 break
         if hit is None:
             hit = _CLASS_EXACT.get(tok)
         if hit is not None:
             required.add(hit)
-        elif tok.startswith(_GENERIC_VEHICLE_ROOTS):
+        elif _herhangi_kok(tok, _GENERIC_VEHICLE_ROOTS):
             generic = True
     return ObjectIntent(required=required, generic_vehicle=generic)
 
@@ -201,15 +235,15 @@ _CASE_SUFFIXES: tuple[str, ...] = (
 def _classify_token(tok: str) -> tuple[str | None, bool]:
     """Token'ı (tür, adjunct_mu) olarak sınıfla. tür: 'object'|'scene'|None."""
     for root, _cls in _CLASS_ROOTS:
-        if tok.startswith(root):
+        if _kok_eslesir(tok, root):
             return ("object", tok[len(root):].endswith(_CASE_SUFFIXES))
     if tok in _CLASS_EXACT:
         return ("object", False)
     for root in _GENERIC_VEHICLE_ROOTS:
-        if tok.startswith(root):
+        if _kok_eslesir(tok, root):
             return ("object", tok[len(root):].endswith(_CASE_SUFFIXES))
     for root in _SCENE_ROOTS:
-        if tok.startswith(root):
+        if _kok_eslesir(tok, root):
             return ("scene", tok[len(root):].endswith(_CASE_SUFFIXES))
     return (None, False)
 
@@ -257,7 +291,7 @@ _HARD_CONCEPT_ROOTS = ("kopek", "kedi", "yagmur", "kar", "semsiye", "semsiy")
 def has_color(visual_text: str) -> bool:
     """Sorguda renk öznitelik kelimesi var mı? (VLM'de color_match sorulur)"""
     toks = _fold(visual_text).split()
-    return any(t.startswith(_COLOR_ROOTS) for t in toks)
+    return any(_herhangi_kok(t, _COLOR_ROOTS) for t in toks)
 
 
 def needs_vlm(visual_text: str) -> bool:
@@ -266,7 +300,8 @@ def needs_vlm(visual_text: str) -> bool:
     Nesne/sahne sorguları zaten yüksek recall → VLM vergisi ödenmez (koşullu, AI Engineer S3).
     """
     toks = _fold(visual_text).split()
-    return any(t.startswith(_COLOR_ROOTS) or t.startswith(_HARD_CONCEPT_ROOTS) for t in toks)
+    return any(_herhangi_kok(t, _COLOR_ROOTS) or _herhangi_kok(t, _HARD_CONCEPT_ROOTS)
+               for t in toks)
 
 
 def translate_visual(visual_text: str) -> str:
@@ -280,7 +315,7 @@ def translate_visual(visual_text: str) -> str:
         tok = raw.strip(".,;:!?()[]\"'")
         if not tok or tok in _TR_SKIP:
             continue
-        en = next((e for root, e in _TR_EN if tok.startswith(root)), None)
+        en = next((e for root, e in _TR_EN if _kok_eslesir(tok, root)), None)
         out.append(en if en is not None else tok)
     # tekrarları koru (sıra önemli), boşsa orijinali döndür
     return " ".join(out) if out else visual_text
@@ -288,7 +323,7 @@ def translate_visual(visual_text: str) -> str:
 
 def _token_en(tok: str) -> str | None:
     """Tek folded token → İngilizce karşılığı (kök-prefix); yoksa None."""
-    return next((e for root, e in _TR_EN if tok.startswith(root)), None)
+    return next((e for root, e in _TR_EN if _kok_eslesir(tok, root)), None)
 
 
 def extract_vqa_targets(visual_text: str) -> tuple[str | None, str | None]:
@@ -305,15 +340,15 @@ def extract_vqa_targets(visual_text: str) -> tuple[str | None, str | None]:
     toks = [raw.strip(".,;:!?()[]\"'") for raw in _fold(visual_text).split()]
     toks = [t for t in toks if t]
 
-    color_en = next((_token_en(t) for t in toks if t.startswith(_COLOR_ROOTS)), None)
+    color_en = next((_token_en(t) for t in toks if _herhangi_kok(t, _COLOR_ROOTS)), None)
 
     # Zor kavram önce (VLM tetiğinin asıl sebebi); sonra sınıf ismi (sonuncu = head'e yakın)
-    obj_en = next((_token_en(t) for t in toks if t.startswith(_HARD_CONCEPT_ROOTS)), None)
+    obj_en = next((_token_en(t) for t in toks if _herhangi_kok(t, _HARD_CONCEPT_ROOTS)), None)
     if obj_en is None:
         for t in toks:
-            if any(t.startswith(root) for root, _ in _CLASS_ROOTS) or t in _CLASS_EXACT:
+            if _herhangi_kok(t, (root for root, _ in _CLASS_ROOTS)) or t in _CLASS_EXACT:
                 obj_en = _token_en(t) or "object"
-    if obj_en is None and any(t.startswith(_GENERIC_VEHICLE_ROOTS) for t in toks):
+    if obj_en is None and any(_herhangi_kok(t, _GENERIC_VEHICLE_ROOTS) for t in toks):
         obj_en = "vehicle"
     return obj_en, color_en
 

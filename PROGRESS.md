@@ -1,5 +1,33 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4 Ağustos 2026 — Türkçe kök eşleşme hatası: "karanlık" → KAR olarak okunuyordu
+
+C1'den (21 Tmz) beri eval'de duran tek `false_gate`'in kökü bulundu. Sorun sanılan yerde
+(bulunamadı kapısı) DEĞİL, sorgu ayrıştırıcısındaydı.
+
+- **Belirti:** "karanlıkta ilerleyen araçlar" sürekli BULUNAMADI dönüyordu, oysa korpusta
+  gece araç görüntüsü var. İlk hipotez (envanter kapısı) doğrudan testle çürütüldü — kapı
+  geçiriyordu. Asıl yer: CLIP 9 doğru aday getiriyor, VLM **hepsini** eliyordu.
+- **Kök neden:** `augment_intent("karanlıkta…")` → `obj_en = "snow"`. Sistem VLM'e
+  *"bu görüntüde KAR var mı?"* diye soruyordu. `_HARD_CONCEPT_ROOTS` içindeki **"kar"**
+  kökü düz `startswith` ile eşleştiği için **"kar-anlık"**, **"kar-ayolu"**, "kar-şı",
+  "kar-deş" hepsi snow'a düşüyordu. CCTV bağlamında *"karayolunda ilerleyen araçlar"*
+  da aynı tuzağa düşerdi — gerçek kullanımda çok daha olası bir sorgu.
+- **Kapsam:** aynı hatalı desen dosyada **9 ayrı yerde** vardı (renk/sınıf/sahne/taşıt
+  kökleri, TR→EN çevirisi, `needs_vlm` tetiği). Hepsi düzeltildi.
+- **Düzeltme:** kök eşleşmesinden sonra kalan parçanın **gerçek bir Türkçe ek dizisi**
+  olduğu doğrulanıyor (`_EK_DIZISI`, `_kok_eslesir`). "karda"/"karlı" geçer, "karanlık"
+  geçmez. Bilinen sınır dokümante edildi: kök+tek sesli ("kara") ayırt edilemez.
+- **Ölçüm (aynı korpus, aynı sorgu seti, tek değişken):**
+  R@5 **0.833 → 0.917** · R@10 **0.917 → 1.000** · MRR **0.847 → 0.889** ·
+  Makro R@5 **0.850 → 0.917** · Faz-1.5 marjini **+0.167 → +0.250** ·
+  **yanlış kapı: scene_karanlik_yol → YOK**. `scene_karanlik_yol` BULUNAMADI → rank 2.
+- **Regresyon yok:** Faz-2 11/12 ve ayrım 2/2 aynen korundu; negation 3/3. Ayrıştırıcı
+  düzeyinde de doğrulandı (karla/karda/karlı → snow, köpek → dog, yağmur → rain).
+- **Ders:** eval'in iki turdur "bilinen açık" diye taşıdığı şey gerçek bir üründe bozukluktu.
+  Metriğin işaret ettiği her anomali, açıklanana kadar bir hata adayıdır.
+  Detay: `experiments/2026-08-04_kok_eslesme_fix/OZET.md`.
+
 ## 4 Ağustos 2026 — Açık lisanslı DEMO korpusu + iki-indeks ayrımı
 
 Ölçüm korpusu (MEVA/VIRAT/UCF) araştırma lisanslı → demo videosu paylaşılamıyordu.

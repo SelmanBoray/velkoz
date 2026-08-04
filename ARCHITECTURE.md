@@ -207,6 +207,39 @@ kare varsayar (`VIRAT_otopark/180`) ve korpusta ondan daha iyi 5 meşru eşleşm
 hata değil, metriğin tasarım varsayımının kırılması. Graded relevance'a (ikili yerine
 dereceli alaka) geçiş **açık madde**. Bilinçli olarak GT oynatılarak "düzeltilmedi".
 
+### 6e. Türkçe kök eşleşmesi — ek doğrulaması (4 Ağustos 2026)
+
+Sorgu ayrıştırıcısı Türkçe çekim eklerine dayanmak için **kök öneki** eşleştiriyordu
+(`tok.startswith(root)`): `kar` → `karda`, `karlı`, `kardan`. Doğru niyet, hatalı uygulama —
+aynı kural kökle **tesadüfen başlayan** bambaşka kelimeleri de yakalıyordu.
+
+**Somut sonuç:** `"karanlıkta ilerleyen araçlar"` sorgusunda nesne hedefi `snow` çıkıyor,
+doğrulayıcıya *"bu görüntüde KAR var mı?"* soruluyor, kar olmadığı için CLIP'in getirdiği
+**9 doğru aday da eleniyor** ve sorgu "bulunamadı" dönüyordu. Eval bunu iki turdur
+`false_gate` olarak raporlamıştı. CCTV bağlamında `"karayolunda ilerleyen araçlar"` da aynı
+tuzağa düşerdi — gerçek kullanımda çok daha olası bir sorgu.
+
+**Çözüm:** kök eşleşmesinden sonra kalan parçanın **geçerli bir Türkçe ek dizisi** olduğu
+doğrulanıyor (`_EK_DIZISI` → çoğul · iyelik · hâl · yapım eki sırası). `_kok_eslesir()`
+tüm eşleşme noktalarında kullanılır: renk kökleri, sınıf kökleri, sahne kökleri, genel
+taşıt kökleri, TR→EN sözlüğü ve `needs_vlm` tetiği (9 çağrı yeri).
+
+```
+karda    → kar + "da"     ✓ hâl eki    → snow
+karlı    → kar + "lı"     ✓ yapım eki  → snow
+karanlık → kar + "anlık"  ✗ ek değil   → eşleşme yok
+karayolu → kar + "ayolu"  ✗ ek değil   → eşleşme yok
+```
+
+**Bilinen sınır:** kök + tek sesli (`kara` = `kar`+`a`) dilbilgisel olarak geçerli bir
+yönelme hâlidir, ayırt edilemez. Tam çözüm morfolojik analiz (Zemberek vb.) ister; yaygın
+çakışmaların tamamı bu kontrolle eleniyor. Sınır dokümante edildi, gizlenmedi.
+
+**Ölçüm (aynı korpus, aynı sorgu seti, tek değişken):** R@5 0.833→**0.917** ·
+R@10 0.917→**1.000** · MRR 0.847→**0.889** · Faz-1.5 marjini +0.167→**+0.250** ·
+yanlış kapı **sıfırlandı**. Faz-2 (11/12) ve ayrım ekseni (2/2) aynen korundu — hiçbir
+negatif kırılmadı. Detay: `experiments/2026-08-04_kok_eslesme_fix/OZET.md`.
+
 ## 7. Niyet-koşullu sıralama (Olgu B çözümü — 4 Temmuz 2026)
 
 Korpus büyütme v2'nin bulduğu Olgu B: sahne sorgusu bir NESNE KELİMESİ içerince

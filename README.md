@@ -72,7 +72,7 @@ Vel'Koz bir "CLIP'e sor" demosu değil; her katmanı gerçek CCTV'nin zorluklar�
   Türkçe sorguyu doğrudan görsel uzayına gömer. "telefonla konuşan sürücü" → davranış düzeyinde eşleşir; çeviri kaybı yok, +0 gecikme.
 
 - **🎯 Küçük özneler için YOLO-kırpık embedding.** 1080p geniş planda uzaktaki bir insan 40 pikseldir ve
-  tam-kare embedding'de kaybolur. Vel'Koz `yolo11m@1280` ile insan/araç kırpıklarını **ayrı vektör** olarak indeksler → "uzakta yürüyen tek kişi" bile bulunur. (Eval'de +0.33 recall marjini.)
+  tam-kare embedding'de kaybolur. Vel'Koz `yolo11m@1280` ile insan/araç kırpıklarını **ayrı vektör** olarak indeksler → "uzakta yürüyen tek kişi" bile bulunur. (Eval'de ölçülen marjinal katkı: **+0.250** Recall@5.)
 
 - **🧠 Türkçe durum-eki (case morphology) ile niyet ayrımı.** "araçlar**la** dolu açık otopark" → sahne;
   "otopark**ta** yürüyen insan" → nesne. Vel'Koz baş ismi (head) **çekim ekinden** çıkarır (locative/instrumental/genitive → adjunct), pozisyondan değil — kırpık selinin sahne sorgusunu gömmesini engeller.
@@ -86,7 +86,7 @@ Vel'Koz bir "CLIP'e sor" demosu değil; her katmanı gerçek CCTV'nin zorluklar�
 
 - **📏 Ölçüm disiplini.** 22 sorgu dondurulmuş (pre-registration), etiket tipine göre metrik
   (video-düzeyi Recall@k / doğrulanmış golden-frame / advisory), Wilson %95 GA, McNemar eşleştirmeli karşılaştırma. Her model/eşik değişikliği bu sabit sette test edilir.
-  Güncel: **R@1 0.833 · R@5 0.833 · MRR 0.847** (17 video) · uçtan uca VLM skoru **11/12**,
+  Güncel: **R@1 0.833 · R@5 0.917 · R@10 1.000 · MRR 0.889** (17 video) · uçtan uca VLM skoru **11/12**,
   hard-negative ayrım ekseni **2/2**. Korpus büyütülürken ground-truth havuzlaması ayrı
   protokole bağlı — sahte regresyon okumamak için (ARCHITECTURE.md §6d).
 

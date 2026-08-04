@@ -17,7 +17,7 @@ yazar; sistem ilgili anları saniyeler içinde bulur ve videoyu o saniyeden oyna
    sorguyu doğrudan görüntü uzayına gömer. Çeviri kaybı ve ek gecikme yoktur.
 2. **Küçük özneler kaybolmaz.** 1080p geniş planda 40 piksellik bir insan tam-kare
    embedding'inde kaybolur. Vel'Koz nesne kırpıklarını ayrı vektör olarak indeksler.
-   Ölçülen katkı: Recall@5'te **+0.167** (0.667 → 0.833).
+   Ölçülen katkı: Recall@5'te **+0.250** (0.667 → 0.917).
 3. **Halüsinasyon yerine dürüst "bulunamadı".** Skor eşiğine güvenmek yerine korpusun nesne
    envanterine bakar; aranan sınıf hiç tespit edilmemişse makul-ama-yanlış sonuç üretmez.
    Ölçülen: 4 negatif sorgunun **4'ü de** doğru şekilde kapıdan döndü.
@@ -171,19 +171,19 @@ Güven aralıkları Wilson yöntemiyle, %95.
 | Metrik | Değer | %95 GA |
 |---|---:|---|
 | Recall@1 | 0.833 | [0.552, 0.953] |
-| Recall@5 | 0.833 | [0.552, 0.953] |
-| Recall@10 | 0.917 | [0.646, 0.985] |
-| MRR | 0.847 | — |
-| Makro Recall@5 | 0.850 | — |
+| Recall@5 | 0.917 | [0.646, 0.985] |
+| Recall@10 | 1.000 | [0.757, 1.000] |
+| MRR | 0.889 | — |
+| Makro Recall@5 | 0.917 | — |
 
 ### 5.2 Nesne-kırpık embedding'inin katkısı (Faz 1.5 ablasyonu)
 
 | Hat | Recall@5 |
 |---|---:|
 | Yalnız tam kare | 0.667 |
-| Yalnız nesne kırpığı | 0.833 |
-| **Birleşik** | **0.833** |
-| **Marjinal katkı** | **+0.167** |
+| Yalnız nesne kırpığı | 0.917 |
+| **Birleşik** | **0.917** |
+| **Marjinal katkı** | **+0.250** |
 
 Bu, mimarinin en pahalı kararının (her nesne için ayrı vektör) ölçülmüş gerekçesidir.
 
@@ -203,7 +203,7 @@ Bu, mimarinin en pahalı kararının (her nesne için ayrı vektör) ölçülmü
 | Ölçüm | Sonuç |
 |---|---|
 | Negatif kapı oranı | **1.00** (4/4 doğru şekilde reddedildi) |
-| Yanlış kapı (false gate) | 1 (`scene_karanlik_yol`) |
+| Yanlış kapı (false gate) | **0** |
 
 **Kanıtlanmış regresyon koruması.** *"Kırmızı kıyafetli adam"* sorgusunda CLIP tam da eski
 hatadaki gibi 6 kırmızı araba adayı üretti; doğrulayıcı **6'sını da eledi, 0 tanesi sonuçlara
@@ -225,8 +225,9 @@ Bu bölüm bilinçli olarak ayrıntılıdır; bilinmeyen sınırlama, bilinenden
 3. **Doğrulayıcı güveni ikili.** Görsel-dil modeli {0, 1} döndürür; dolayısıyla eşik kalibrasyonu
    anlamsızdır ve yapılmamıştır. Sürekli güven skoru (çok-kareli mutabakat veya token
    log-olasılığı) bir **özellik** olarak eklenebilir; kalibrasyon değildir.
-4. **Bir yanlış kapı mevcut.** `scene_karanlik_yol` sorgusu hatalı şekilde "bulunamadı"
-   kapısına takılıyor. Bilinmekte, gizlenmemektedir.
+4. **Türkçe kök eşleşmesinde kalan bir sınır.** Kök + tek sesli birleşimi ("kara" =
+   `kar`+`a`) dilbilgisel olarak geçerli bir yönelme hâli olduğu için ayırt edilemiyor.
+   Yaygın çakışmalar (`karanlık`, `karayolu`) düzeltildi; tam çözüm morfolojik analiz ister.
 5. **Renk ground-truth'u otomatik doğrulanamaz.** Renk sorguları bu nedenle advisory sayılır ve
    toplu Recall'a katılmaz.
 6. **Test korpusu yeniden dağıtılamaz.** MEVA/VIRAT/UCF araştırma lisanslıdır; bu klipler demo
