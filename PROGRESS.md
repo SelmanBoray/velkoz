@@ -1,5 +1,32 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4 Ağustos 2026 — Lisans denetimi: ticarileştirmenin önündeki gerçek engel
+
+Paketleme fizibilitesi araştırılırken paketlemeden daha kritik bir bulgu çıktı.
+
+- **Üç çekirdek modelin üçü de ticari kullanıma kapalı:** `jina-clip-v2` **CC-BY-NC-4.0**
+  (sistemin kalbi), `qwen2.5vl:3b` **Qwen Research** (non-commercial), `ultralytics` YOLO11
+  **AGPL-3.0** (dağıtım kaynak açmayı tetikler). Prototip/akademik/TEKNOFEST kullanımı
+  sorunsuz; engel yalnız satış aşamasında başlıyor.
+- **Tuzak:** Ollama kayıt sayfası `qwen2.5vl:3b` için Apache-2.0 gösteriyor — YANLIŞ.
+  Bağlayıcı olan yukarı-akış (`Qwen/Qwen2.5-VL-3B-Instruct`, qwen-research). Qwen2.5-VL
+  ailesinde yalnız **7B** Apache-2.0.
+- **Ölçülen ve REDDEDİLEN çözüm:** `qwen3-vl:2b` (Apache-2.0, zaten kurulu) tek satırlık
+  "bedava kazanç" diye önerildi. A/B koşuldu: **11/12 → 9/12**. Renk sorgularının üçü
+  birden kırıldı (siyah SUV, beyaz araba, kırmızı araba) — model renk sorularına aşırı
+  "hayır" eğilimli. `mavi kamyonet`'in "düzelmesi" de aynı aşırı-negatifliğin yan etkisi,
+  gerçek kazanç değil. **qwen2.5vl:3b'de kalındı.**
+  Ders: lisans uyumu için model değiştirmek ücretsiz değil; ölçmeden yapılmaz.
+- **`docs/LISANS_DURUMU.md`** yazıldı: bileşen bazında lisans tablosu, ticari etki,
+  üç madde için seçenek karşılaştırması (Jina ticari lisans / SigLIP2 / LAION XLM-R;
+  qwen2.5vl:7b; AGPL yayını vs RT-DETR). Öneri: demo öncesi CLIP DEĞİŞTİRİLMEMELİ —
+  model değişimi C1 baseline'ını ve tüm karşılaştırmaları geçersiz kılar.
+- **Paketleme kararı: portable ZIP** (PyInstaller/Inno değil). Gerekçe: PyInstaller build'i
+  denendi, arama yolu çalıştı ama `ultralytics` import'u kırıldı — yani tespit hattı hiç
+  doğrulanmadı; 6,4 GB çıktı temizlendi. Portable ZIP aynı boyutu onda bir emekle veriyor.
+  Öncesinde 4 kod düzeltmesi gerekiyor (yazma yolları, YOLO ağırlık yolu, Qdrant kilidi,
+  Streamlit başlatma) — bunlar ZIP için de gerekli.
+
 ## 4 Ağustos 2026 — Türkçe kök eşleşme hatası: "karanlık" → KAR olarak okunuyordu
 
 C1'den (21 Tmz) beri eval'de duran tek `false_gate`'in kökü bulundu. Sorun sanılan yerde
