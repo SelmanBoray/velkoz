@@ -23,6 +23,38 @@ anları saniyeler içinde bulur, doğrudan o saniyeye atlatır — ve **hiçbir 
 
 ---
 
+## Çalışırken
+
+Sahne sorgusu — otopark alanını bulur:
+
+![park halindeki arabalar](docs/demo/01_park_arabalar.png)
+
+Davranış sorgusu — uzaktaki küçük özneyi kırpık vektöründen yakalar:
+
+![kaldırımda yürüyen yaya](docs/demo/02_yuruyen_yaya.png)
+
+**Ve bulamadığında uydurmaz.** Vel'Koz'un iki ayrı dürüstlük katmanı var — aranan nesne
+korpusta hiç tespit edilmemişse **envanter kapısı** devreye girer:
+
+![kırmızı bisiklet süren çocuk](docs/demo/05_negatif_bisiklet.png)
+
+Nesne varsa ama tarif tutmuyorsa **görsel-dil doğrulayıcı** adayları eler:
+
+![köpek gezdiren adam](docs/demo/04_negatif_kopek.png)
+
+> Demo görüntüleri açık lisanslıdır (US DOT/FHWA NGSIM · Wikimedia Commons — CC BY-SA 4.0).
+> Ölçüm korpusu ayrı tutulur ve araştırma lisanslı olduğu için paylaşılmaz —
+> ayrıntı: [`docs/DEMO_KORPUS_LISANS.md`](docs/DEMO_KORPUS_LISANS.md).
+
+Kartları yeniden üretmek için:
+
+```bash
+QDRANT_PATH=data/qdrant_demo THUMBS_DIR=data/thumbnails_demo \
+  python scripts/demo_kartlari.py
+```
+
+---
+
 ## Neden Vel'Koz?
 
 - 🏢 Site yönetimleri, AVM'ler ve fabrikalar bir olay olduğunda **saatlerce video izliyor.**
