@@ -1,5 +1,32 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4 Ağustos 2026 — Açık lisanslı DEMO korpusu + iki-indeks ayrımı
+
+Ölçüm korpusu (MEVA/VIRAT/UCF) araştırma lisanslı → demo videosu paylaşılamıyordu.
+Çok açılı kaynak taraması yapıldı (stok platformlar, akademik açık veri, canlı kameralar,
+sentetik üretim).
+
+- **Kritik lisans bulgusu:** "ücretsiz" stok platformlarının neredeyse tamamı (Pexels,
+  Pixabay, Mixkit, Coverr) **ham dosya yeniden dağıtımını yasaklıyor**. Coverr ve Pexels
+  ayrıca içeriğin veri setine girmesini / ML "evaluate" amaçlı kullanımını açıkça yasaklıyor —
+  bu Vel'Koz'un indeksleme mimarisiyle doğrudan çelişiyor. Hiçbiri kullanılmadı.
+- **Kullanılabilir bulunan:** US DOT/FHWA **NGSIM** (CC BY-SA 4.0, Socrata API'sinden
+  `licenseId: CC_40_BY_SA` doğrulandı) ve **Wikimedia Commons** (CC BY-SA 4.0).
+- **6 aday indirildi, 3'ü elendi** — eleme projenin KENDİ dedektörüyle objektif yapıldı:
+  Montreal kavşağı **35 bisiklet** (neg_bisiklet kapısını kırardı), NGSIM Lankershim cam1+cam3
+  **0 tespit** (tepeden dik açı, YOLO tanımıyor, gerçek CCTV geometrisi değil).
+- **İKİ-İNDEKS AYRIMI (mimari karar).** Demo klipleri ölçüm korpusuna KARIŞTIRILMADI.
+  Ölçüm: `data/qdrant_storage` (17 video / 6231 vektör, **dokunulmadı, doğrulandı**).
+  Demo: `data/qdrant_demo` (3 klip / 1874 vektör, bisiklet YOK). Gerekçe: karıştırılsaydı
+  dondurulmuş GT her demo klibinde yeniden eskir ve havuzlama gerekirdi; ayrı indeks bu bağı keser.
+- **Demo senaryosu doğrulandı.** Pozitifler çalışıyor ("park halindeki arabalar" 0.400,
+  "kaldırımda yürüyen yaya" 0.400). Üç negatif de doğru "bulunamadı" veriyor ve **iki farklı
+  mekanizma** gösterilebiliyor: bisiklet → envanter kapısı, köpek/kar → VLM elemesi.
+- **Dürüst sınır:** kabul edilen 3 klibin hiçbiri gerçek sabit-CCTV değil (kule çekimi,
+  sokak seviyesi, el kamerası). Açık lisanslı gerçek gözetim açılı video pratikte yok —
+  gerçek CCTV setlerinin tamamı araştırma lisanslı. Orta vadede kendi çekimimiz gerekli.
+  Kaynak künyeleri, zorunlu atıflar ve ret gerekçeleri: `docs/DEMO_KORPUS_LISANS.md`.
+
 ## 4 Ağustos 2026 — Hata dayanıklılığı: iki sessiz yanlış-güven yolu kapatıldı
 
 Yeni kullanıcının karşılaşacağı arıza senaryoları gerçekten koşturularak test edildi

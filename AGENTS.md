@@ -27,6 +27,26 @@ ARCHITECTURE.md → mimari kararlar ve gerekçeleri
 PROGRESS.md     → proje günlüğü
 ```
 
+## İki korpus, iki indeks — KARIŞTIRMA
+
+| Korpus | İçerik | İndeks yolu | Paylaşılabilir |
+|---|---|---|---|
+| **Ölçüm** | MEVA · VIRAT · UCF (17 video, 6231 vektör) | `data/qdrant_storage` | ❌ araştırma lisanslı |
+| **Demo** | Açık lisanslı (3 klip, 1874 vektör) | `data/qdrant_demo` | ✅ CC BY-SA 4.0 |
+
+Ölçüm korpusu **yeniden dağıtılamaz** — o kliplerle çekilmiş demo videosu/ekran kaydı
+paylaşmak lisans ihlalidir. Demo korpusu bu yüzden var ve **ayrı indekste yaşar**.
+
+Ayrı indeks olmasının ikinci nedeni ölçüm bütünlüğü: demo klipleri ölçüm korpusuna
+karıştırılsaydı dondurulmuş sorgu setinin GT'si yine eskir ve her demo klibi için yeniden
+havuzlama gerekirdi. Ayrı indeks bu bağı tamamen keser.
+
+Demo indeksiyle çalışmak için env override:
+`QDRANT_PATH=.../data/qdrant_demo THUMBS_DIR=.../data/thumbnails_demo`
+
+Yeni demo klibi eklerken: dedektörle **bisiklet kapısı** + gözle 5-yasaklı kontrolü + lisans
+doğrulaması ZORUNLU; kabul/ret gerekçeleri `docs/DEMO_KORPUS_LISANS.md`'ye yazılır.
+
 ## Kurulum denetimi
 
 `python -m gozcu doctor` — Python, torch+CUDA, torchvision, transformers kilidi, YOLO
