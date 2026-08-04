@@ -214,6 +214,11 @@ python -m gozcu ui        # → http://localhost:8501
 ## Gizlilik önce (KVKK)
 
 Vel'Koz'un en büyük satış argümanı aynı zamanda mimari ilkesi: **hiçbir veri dışarı çıkmaz.**
+
+Bu bir iddia değil, **denetlenen** bir güvence: modeller yerel önbellekten yüklenir
+(`HF_HUB_OFFLINE`), YOLO ağırlığı sabit yoldan okunur ve bulunamazsa sessizce indirilmek
+yerine hata verir. Ağ tamamen kapalıyken hem arama hem indeksleme uçtan uca test edilmiştir.
+`python -m gozcu doctor` çevrimdışı kilidin etkin olduğunu satır olarak raporlar.
 Görüntüler, embedding'ler, sorgular ve VLM çağrılarının tamamı lokalde çalışır — bulut yok, API yok, üçüncü taraf yok. Bu, güvenlik kamerası verisiyle çalışmanın tek etik ve yasal yolu.
 
 ---

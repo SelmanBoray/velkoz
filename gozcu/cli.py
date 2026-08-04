@@ -7,6 +7,7 @@ Kullanım:
     python -m gozcu ui
 """
 
+import os
 import subprocess
 import sys
 import time
@@ -265,6 +266,13 @@ def doctor() -> None:
     except Exception as exc:  # depo bozuk/kilitli — kurulum sorunu olarak raporla
         add("Qdrant indeksi", FAIL, f"açılamadı: {type(exc).__name__}",
             f"{settings.qdrant_path} kilitli olabilir — diğer süreçleri kapat")
+
+    # ── 7b. Çevrimdışı kilit — ürünün "veri dışarı çıkmaz" sözünün teknik güvencesi ──
+    offline = os.environ.get("HF_HUB_OFFLINE")
+    add("Çevrimdışı kilit", OK if offline == "1" else WARN,
+        "etkin — model önbellekten yüklenir, ağa çıkılmaz" if offline == "1"
+        else "kapalı — model önbelleği eksik, ilk yükleme ağ gerektirir",
+        "" if offline == "1" else "Modeller bir kez indirilince kilit kendiliğinden etkinleşir")
 
     # ── 8. Ollama + VLM (opsiyonel: yoksa CLIP-only çalışır) ──
     try:

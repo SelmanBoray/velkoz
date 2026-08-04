@@ -1,5 +1,37 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4 Ağustos 2026 — Çevrimdışı sertleştirme: iki gizli ağ çıkışı kapatıldı
+
+Dağıtım hazırlığında "ağ kapalıyken çalışıyor mu" testi yapıldı (proxy blokajı, localhost
+hariç). **İki ayrı ağ çıkışı bulundu — ikisi de ürünün "hiçbir veri dışarı çıkmaz" sözüyle
+doğrudan çelişiyordu.**
+
+- **1) YOLO ağırlığı sessizce GitHub'dan indiriliyordu.** `yolo_model = "yolo11m.pt"` çıplak
+  göreli addı; ultralytics onu ÇALIŞMA DİZİNİNE göre çözüyor, bulamazsa indiriyor.
+  Ölçüldü: proje kökü dışından çalıştırınca **38.8 MB çekti**. Sonuçları: (a) ağı olmayan
+  müşteri makinesinde anlaşılmaz çökme, (b) KVKK anlatısının ortasında habersiz dış bağlantı.
+  Düzeltme: yol proje köküne **mutlak** sabitlendi; ağırlık yoksa sessiz indirme yerine
+  **çözüm komutunu içeren net hata**.
+- **2) transformers her açılışta HuggingFace'e bağlanıyordu.** `from_pretrained` varsayılan
+  olarak "config.json güncel mi" diye HEAD atıyor. Ağ kapalıyken 5 kez yeniden deneyip
+  **42 saniye** sonra çöküyordu → ürün çevrimdışı makinede HİÇ çalışmıyordu.
+  `local_files_only=True` **yetmedi**: `trust_remote_code` uzak kodu ve jina-clip-v2'nin
+  bağımlı repoları (implementation, xlm-roberta-flash) ayrı çağrılarla çekiliyor.
+  Düzeltme: `config.py::_cevrimdisi_kilidi()` — model önbellekte varsa `HF_HUB_OFFLINE=1`
+  transformers import edilmeden ÖNCE kurulur. İlk kurulum bozulmaz (önbellek yoksa bayrak
+  konmaz); kullanıcı açıkça verirse kararı ona bırakılır.
+- **Doğrulandı (ağ kapalı, proxy blokajlı):** arama ✅ · indeksleme ✅ (25 kare + 201 kırpık).
+- **Taşınabilirlik:** `DATA_DIR` tek başına verilince `thumbs_dir`/`qdrant_path` onu takip
+  ediyor (`model_post_init`). Önceden üç değişkeni ayrı vermek gerekiyordu; biri unutulunca
+  indeks bir yere, küçük resimler başka yere yazılıyordu.
+- **Qdrant kilidi zarif hata veriyor.** Gömülü mod münhasır kilit kullanıyor; ham mesaj
+  ("already accessed by another instance") ne yapılacağını söylemiyordu. Artık en olası
+  sebebi (arayüz açıkken indeksleme) ve çözümü yazıyor. İki süreçle test edildi.
+- **`doctor`'a çevrimdışı kilit satırı eklendi** — "veri dışarı çıkmaz" sözünün denetlenebilir
+  kanıtı; toplam 9 bileşen kontrolü.
+- **Regresyon yok:** R@1 0.833 · R@5 0.917 · R@10 1.000 · MRR 0.889 · Faz-2 11/12 · ayrım 2/2.
+  `experiments/2026-08-04_cevrimdisi_sertlestirme/`
+
 ## 4 Ağustos 2026 — Lisans denetimi: ticarileştirmenin önündeki gerçek engel
 
 Paketleme fizibilitesi araştırılırken paketlemeden daha kritik bir bulgu çıktı.

@@ -28,8 +28,17 @@ class Embedder:
         self.device = device
         self.batch_size = settings.batch_size_gpu if device == "cuda" else settings.batch_size_cpu
 
-        # ── Model yükleme ──
-        self.model = AutoModel.from_pretrained(settings.model_id, trust_remote_code=True)
+        # ── Model yükleme: ÖNBELLEK ÖNCE, ağ yalnız ilk kurulumda ──
+        # transformers varsayılanı her açılışta HuggingFace'e HEAD atıp "config.json güncel mi"
+        # diye sorar. Ölçüldü (4 Ağu 2026): ağ kapalıyken 5 kez yeniden dener, **42 saniye**
+        # sonra çöker — yani ürün çevrimdışı müşteri makinesinde HİÇ çalışmaz. Dahası, ağı olan
+        # makinede her arama dışarı bir istek üretir; bu, "hiçbir veri dışarı çıkmaz" sözüyle
+        # bağdaşmaz. Önce yerel önbellekten yükle; yalnız hiç indirilmemişse ağa çık.
+        try:
+            self.model = AutoModel.from_pretrained(
+                settings.model_id, trust_remote_code=True, local_files_only=True)
+        except OSError:  # önbellekte yok → ilk kurulum, bilinçli olarak indir
+            self.model = AutoModel.from_pretrained(settings.model_id, trust_remote_code=True)
         if device == "cuda":
             self.model = self.model.to("cuda", dtype=torch.float16)
         self.model.eval()

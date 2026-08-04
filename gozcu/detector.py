@@ -9,6 +9,7 @@ olmayan tespit kurtarılamaz), orijinal kareden kırpma, statik nesne bastırma.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
@@ -53,7 +54,22 @@ class Detector:
         if device == "auto":
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
-        self.model = YOLO(settings.yolo_model)
+
+        # ── Ağırlık MUTLAK yoldan yüklenir; yoksa SESSİZ İNDİRME yerine net hata ──
+        # ultralytics çıplak dosya adını bulamazsa GitHub'dan indirmeye çalışır. Bu, ağı
+        # olmayan makinede anlaşılmaz bir çökme; olan makinede ise "veri dışarı çıkmaz"
+        # sözüne aykırı sessiz bir dış bağlantı üretir. İkisini de burada kapatıyoruz.
+        weight = Path(settings.yolo_model)
+        if not weight.is_absolute():
+            weight = Path(__file__).resolve().parent.parent / weight
+        if not weight.exists():
+            raise FileNotFoundError(
+                f"YOLO ağırlığı bulunamadı: {weight}\n"
+                f"İndir: python -c \"from ultralytics import YOLO; YOLO('{weight.name}')\"\n"
+                f"veya YOLO_MODEL ortam değişkeniyle mevcut bir .pt dosyasını göster.\n"
+                f"(Otomatik indirme bilinçli olarak kapalı — çevrimdışı çalışma güvencesi.)"
+            )
+        self.model = YOLO(str(weight))
 
     def detect(self, image: np.ndarray) -> list[Detection]:
         """BGR kare → güvene göre sıralı tespit listesi (kare başına üst sınırlı)."""

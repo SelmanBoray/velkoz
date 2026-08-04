@@ -3,12 +3,39 @@
 Eşik değerlerinin gerekçeleri için: ARCHITECTURE.md
 """
 
+import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
 # ── Proje kökü: yollar çalışma dizininden bağımsız olsun ──
 _ROOT = Path(__file__).resolve().parent.parent
+
+
+def _cevrimdisi_kilidi() -> None:
+    """Model önbellekte varsa TÜM HuggingFace ağ çağrılarını kapat.
+
+    NEDEN (4 Ağu 2026 ölçümü): transformers her açılışta HF'ye HEAD atıp "config.json güncel mi"
+    diye soruyor. Ağ kapalıyken 5 kez yeniden deneyip **42 saniye** sonra çöküyordu — ürün
+    çevrimdışı müşteri makinesinde HİÇ çalışmıyordu. Ağı olan makinede ise her arama dışarı
+    bir istek üretiyordu; bu, ürünün "hiçbir veri dışarı çıkmaz" sözüyle bağdaşmaz.
+
+    `local_files_only=True` tek başına YETMİYOR: `trust_remote_code` ile gelen uzak kod ve
+    jina-clip-v2'nin bağımlı repoları (implementation, xlm-roberta-flash) ayrı çağrılarla
+    çekiliyor. Kilit bu yüzden ortam değişkeni seviyesinde ve transformers import edilmeden
+    ÖNCE kuruluyor (huggingface_hub bu bayrağı import anında okur).
+
+    İlk kurulum bozulmaz: önbellek yoksa bayrak konmaz, model normal şekilde indirilir.
+    Kullanıcı isterse HF_HUB_OFFLINE'ı kendisi verip bu mantığı geçersiz kılabilir.
+    """
+    if "HF_HUB_OFFLINE" in os.environ:
+        return  # kullanıcı açıkça karar vermiş — dokunma
+    hub = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface")) / "hub"
+    if (hub / "models--jinaai--jina-clip-v2").exists():
+        os.environ["HF_HUB_OFFLINE"] = "1"
+
+
+_cevrimdisi_kilidi()
 
 
 class Settings(BaseSettings):
@@ -45,7 +72,11 @@ class Settings(BaseSettings):
     anchor_interval_s: float = 60.0     # hareketsiz de olsa çapa karesi aralığı
 
     # ── YOLO kırpık embedding (Faz 1.5) ──
-    yolo_model: str = "yolo11m.pt"
+    # MUTLAK yol: çıplak "yolo11m.pt" verilirse ultralytics onu ÇALIŞMA DİZİNİNE göre çözer;
+    # bulamazsa sessizce GitHub'dan indirir (ölçüldü: 38.8 MB çekti). İki sonucu da istemeyiz —
+    # (1) ağı olmayan müşteri makinesinde çöker, (2) "görüntü binadan çıkmaz" diyen bir üründe
+    # habersiz dış bağlantı açar. Yol artık proje köküne sabit; `detector` yoksa net hata verir.
+    yolo_model: Path = _ROOT / "yolo11m.pt"
     yolo_imgsz: int = 1280           # küçük özne için çözünürlük model boyutundan önemli
     yolo_conf_person: float = 0.15   # düşük eşik: indekste olmayan tespit kurtarılamaz
     yolo_conf_vehicle: float = 0.25
@@ -92,6 +123,16 @@ class Settings(BaseSettings):
     # doldurur); ZOR-KAVRAM (köpek/yağmur) → kutusuz sınırlandırılmış tam-kare (nesne kırpık
     # dışında olabilir). Tam-kare uzun-kenar sınırı token/latency'yi tutar. ARCHITECTURE §8.
     vlm_frame_max_side: int = 768         # zor-kavram doğrulama tam-karesi uzun kenar sınırı (px)
+
+    # ── Taşınabilirlik: DATA_DIR tek başına verilince alt yollar onu TAKİP ETSİN ──
+    # Aksi hâlde kullanıcı üç ayrı değişken (DATA_DIR, THUMBS_DIR, QDRANT_PATH) vermek zorunda
+    # kalıyor ve birini unutursa indeks bir yere, küçük resimler başka yere yazılıyor.
+    # Açıkça verilen değişken her zaman kazanır.
+    def model_post_init(self, _ctx) -> None:
+        if "THUMBS_DIR" not in os.environ:
+            object.__setattr__(self, "thumbs_dir", self.data_dir / "thumbnails")
+        if "QDRANT_PATH" not in os.environ:
+            object.__setattr__(self, "qdrant_path", self.data_dir / "qdrant_storage")
 
 
 settings = Settings()

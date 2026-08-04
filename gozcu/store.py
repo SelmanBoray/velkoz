@@ -26,7 +26,19 @@ class FrameStore:
     def __init__(self) -> None:
         # ── Client + koleksiyon kurulumu ──
         settings.qdrant_path.mkdir(parents=True, exist_ok=True)
-        self.client = QdrantClient(path=str(settings.qdrant_path))
+        # ── Qdrant gömülü mod MÜNHASIR kilit kullanır: aynı indekse ikinci süreç bağlanamaz.
+        #    Ham hata mesajı ("already accessed by another instance") kullanıcıya ne yapacağını
+        #    söylemiyor — en olası senaryo arayüz açıkken indeksleme denemek. ──
+        try:
+            self.client = QdrantClient(path=str(settings.qdrant_path))
+        except RuntimeError as exc:
+            if "already accessed" not in str(exc).lower():
+                raise
+            raise RuntimeError(
+                f"İndeks başka bir süreç tarafından kullanılıyor: {settings.qdrant_path}\n"
+                f"Muhtemel sebep: arayüz (python -m gozcu ui) açıkken indeksleme başlatıldı.\n"
+                f"Çözüm: diğer Vel'Koz süreçlerini kapat, sonra tekrar dene."
+            ) from exc
         self._class_cache: set[str] | None = None  # bulunamadı kapısı için sınıf envanteri
         if not self.client.collection_exists(COLLECTION):
             self.client.create_collection(
