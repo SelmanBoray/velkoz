@@ -1,5 +1,33 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4 Ağustos 2026 — Korpus v2 (13→17 video) + GT havuzlama protokolü
+
+- **Task #4 tamamlandı.** MEVA-S3'ten 4 klip indekslendi: `meva_okul_G330` (basketbol salonu,
+  30s), `meva_okul_G339` (kampüs/park), `meva_hastane_G341` + `meva_otobus_G505` (dış mekân yaya).
+  Korpus **13→17 video**, **4395→6231 vektör**. `available_object_classes()` içinde **bisiklet YOK**
+  → eyeball-gate tuttu, `neg_bisiklet` envanter kapısı korundu.
+- **Sahte regresyon yakalandı ve teşhis edildi.** C1-GT ile ölçüm R@5 0.917→0.833, MRR 0.917→0.785
+  gösterdi. İnceleme: `gold_yuruyen_insan` top-5'inin **tamamı doğru yürüyen insan** (yeni
+  videolardan, skorları C1 top-1'inden yüksek). Yani model değil, **GT eskimiş** — IR'deki
+  *incomplete relevance judgments* problemi. Kırpık küçük resimleri gözle doğrulandı.
+- **`eval/queries_c2.yaml` (GT havuzlama).** `queries.yaml` C1 için **dondurulmuş kaldı**.
+  Genişletme kararı arama sonucuna DEĞİL videonun içeriğine bakılarak verildi; **kanıtı zayıf
+  4 genişletme reddedildi** (G339→otopark değil, G339 kamyonu bulanık, G330 basketbol "yürüyen"
+  değil, G505 park-arası değil). Yapılan 2 genişletme görsel kanıtlı.
+  Sonuç C2-GT ile: **R@1 0.833 · R@5 0.833 · MRR 0.847**; `beh_uzakta_yuruyen` **4→1**.
+- **Üç yargı:** GUARD **GEÇTİ** (gerçek regresyon yok) · DEDEKTİF **TEMİZ** (5 yasaklı kavramın
+  hiçbiri sızmadı, negation 4/4 GATE + Faz-2 3/3) · İYİLEŞME **KISMİ**.
+- **Kazanç: `hn_kirmizi_kiyafet` not_found → has_results.** C1'de hiç sonuç bulunamıyordu;
+  artık G330'dan 2 doğru insan sonucu dönüyor, **0 araç sızıntısı**. İnsan-renk pozitif yolu
+  ilk kez canlı test edildi. `hn_siyah_kiyafet` hâlâ vacuous (⚠ işaretli bırakıldı).
+  Faz-2 **11/12, ayrım 2/2** — C1 ile aynı; `mavi kamyonet` C1'den devralınan bilinen açık.
+- **Açık madde:** `gold_yuruyen_insan` rank 6'da kaldı. Havuzlama düzeltmedi çünkü `gold_*`
+  metriği **tek golden kareye** bağlı ve korpus büyüdükçe bu varsayım kırılıyor. `golden_frame`'e
+  DOKUNULMADI (metrik kurtarmak için GT oynatmak p-hacking olurdu). Graded relevance'a geçiş
+  değerlendirilecek.
+- **Araç:** `faz2_eval.py`'a `--queries` / `--out` eklendi (sürümlenebilir eval).
+  Detay: `experiments/2026-08-04_korpus_v2_guard/OZET.md`.
+
 ## 21 Temmuz 2026 — Hard-negative eval kapsamı + ayrım ekseni (AI Engineer #5)
 
 - Loop devam: en kırılgan düzeltmemizin (**"kırmızı kıyafetli adam" araba getiriyordu**)

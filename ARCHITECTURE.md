@@ -179,6 +179,34 @@ Eksen 2'yi atlar — geriye tam uyumlu).
 (0,1) aralığında no-op; `vlm_beta` renk survivor'larına sabit ofset (sıralamaya etkisiz).
 Kalibrasyon anlamlı olması için sürekli-confidence gerekir (feature, kalibrasyon değil — kapsam dışı).
 
+### 6d. GT havuzlama — korpus büyürken ölçümü dürüst tutmak (4 Ağustos 2026)
+
+Korpus 13→17 videoya çıkınca C1 sorgu setiyle ölçüm **R@5 0.917→0.833, MRR 0.917→0.785**
+gösterdi. İnceleme regresyonun **sahte** olduğunu ortaya çıkardı: `gold_yuruyen_insan`
+top-5'inin tamamı yeni videolardan gelen **doğru** yürüyen-insan kırpığıydı ve skorları
+C1 top-1'inden yüksekti (0.409 vs 0.384). Kusur modelde değil, GT'deydi — `relevant_videos`
+listeleri yeni videoları bilmiyordu. IR literatüründe **incomplete relevance judgments**.
+
+**Protokol (`eval/queries_c2.yaml` başlığında da yazılı):**
+1. Eski sorgu seti **dondurulmuş kalır** — kendi korpusunda geçerli bir kayıt olarak durur.
+2. Yeni korpus sürümü **ayrı dosyaya** yazılır (`queries.yaml` → `queries_c2.yaml`).
+3. Genişletme kararı **arama sonucuna değil videonun İÇERİĞİNE** bakılarak verilir:
+   video-başı sınıf envanteri + kırpık/kare küçük resimleri gözle.
+4. Kanıtı zayıf genişletme **reddedilir ve gerekçesi dosyaya yazılır** (4 Ağu'da 4 red:
+   G339 tam otopark değil, G339 kamyon kırpığı bulanık, G330 basketbol "yürüyen" değil,
+   G505 araçların arasında değil). Reddedilenleri yazmak, kabul edilenler kadar önemli —
+   seçiciliğin metrik lehine çalışmadığının kaydı.
+5. `golden_frame` alanlarına **asla dokunulmaz**.
+6. İki sürümün sonucu **yan yana** raporlanır; C2 tek başına ilerleme kanıtı sayılmaz.
+
+C2-GT ile: **R@1 0.833 · R@5 0.833 · MRR 0.847**; `beh_uzakta_yuruyen` 4→1'e döndü.
+
+**Ortaya çıkan sınırlama — golden-frame metriği korpus boyutuna duyarlı.**
+`gold_yuruyen_insan` havuzlamadan sonra da rank 6'da kaldı, çünkü `gold_*` metriği tek doğru
+kare varsayar (`VIRAT_otopark/180`) ve korpusta ondan daha iyi 5 meşru eşleşme var. Bu bir
+hata değil, metriğin tasarım varsayımının kırılması. Graded relevance'a (ikili yerine
+dereceli alaka) geçiş **açık madde**. Bilinçli olarak GT oynatılarak "düzeltilmedi".
+
 ## 7. Niyet-koşullu sıralama (Olgu B çözümü — 4 Temmuz 2026)
 
 Korpus büyütme v2'nin bulduğu Olgu B: sahne sorgusu bir NESNE KELİMESİ içerince

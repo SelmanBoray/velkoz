@@ -40,3 +40,11 @@ ile ölçülür (loop'un his yerine güvendiği metrik). İki ortogonal eksen: *
 sızarsa FAIL; kişi-renk sorgusunun araç getirmesini kilitler). `forbid` sembolik tutulur —
 depodaki `yolo_class` **Türkçe**, İngilizce liste yazma (sahte-PASS). Güncel skor **11/12**;
 detay ARCHITECTURE.md §6c. Çalıştırma: `.venv/Scripts/python.exe eval/faz2_eval.py` (Ollama gerekir).
+
+**Korpus büyütürken GT havuzlama ZORUNLU.** Korpusa video eklemek eski `relevant_videos`
+listelerini eksik bırakır → sahte regresyon okunur (4 Ağu 2026'da yaşandı: R@5 0.917→0.833
+görüldü, sebep model değil GT'ydi). Protokol: eski sorgu seti **dondurulmuş kalır**, yeni
+sürüm ayrı dosyaya yazılır (`queries_c2.yaml`), genişletme kararı **arama sonucuna değil
+videonun içeriğine** bakılarak verilir (sınıf envanteri + küçük resim gözle), kanıtı zayıf
+genişletme **reddedilir ve gerekçesi yazılır**, iki sürümün sonucu **yan yana** raporlanır.
+`golden_frame` alanlarına asla dokunulmaz — metriği kurtarmak için GT oynatmak p-hacking'dir.

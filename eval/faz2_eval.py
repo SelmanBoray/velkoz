@@ -52,14 +52,22 @@ def _forbidden_hits(hits, forbid_set) -> list:
 
 
 def main() -> None:
+    import argparse
+
     from gozcu.config import settings
     from gozcu.search import search, vlm_available
+
+    # ── Argümanlar: v2 sorgu setleri ve deney klasörleri için (korpus sürümlendirme) ──
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--queries", default=str(_ROOT / "eval" / "queries_faz2.yaml"))
+    ap.add_argument("--out", default=str(_ROOT / "experiments" / "2026-07-05_vlm_latency"))
+    args = ap.parse_args()
 
     if not vlm_available():
         print(f"HATA: Ollama/{settings.vlm_model} erişilemez. `ollama serve` + model gerekli.")
         raise SystemExit(1)
 
-    entries = yaml.safe_load((_ROOT / "eval" / "queries_faz2.yaml").read_text("utf-8"))
+    entries = yaml.safe_load(Path(args.queries).read_text("utf-8"))
     print(f"{len(entries)} sorgu · VLM={settings.vlm_model} · uçtan uca (CLIP+VLM)\n")
 
     by_bucket: dict[str, list] = defaultdict(list)
@@ -118,7 +126,9 @@ def main() -> None:
     print(f"\n  GENEL SKOR: {total_ok}/{len(records)} "
           f"({100 * total_ok / len(records):.0f}%)")
 
-    out = _ROOT / "experiments" / "2026-07-05_vlm_latency" / "faz2_eval_sonuc.json"
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / "faz2_eval_sonuc.json"
     out.write_text(json.dumps({
         "score": f"{total_ok}/{len(records)}",
         "discrimination": f"{sum(discrim)}/{len(discrim)}" if discrim else "n/a",
