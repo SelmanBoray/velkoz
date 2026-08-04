@@ -211,6 +211,29 @@ python -m gozcu ui        # → http://localhost:8501
 
 ---
 
+## Dağıtım — taşınabilir paket
+
+Hedef makinede Python, pip, internet veya yönetici hakkı **gerekmeden** çalışan bir klasör üretir:
+
+```bash
+python scripts/paket_hazirla.py --dry-run                  # önce boyut raporu
+python scripts/paket_hazirla.py --hedef D:/velkoz_paket    # klasörü üret
+python scripts/paket_hazirla.py --hedef D:/velkoz_paket --zip
+```
+
+Paket ~6.6 GB (venv 5.2 GB + model önbelleği 1.65 GB + kod). İçinde `basla.bat` (arayüzü
+açar), `denetle.bat` (`doctor` çalıştırır) ve `OKUBENI.md` bulunur. İndeks ve küçük resimler
+paketin içindeki `data\` altına yazılır — klasörü taşıdığında arşivin de birlikte gelir.
+
+**Doğrulandı:** paket, ağ tamamen kapalıyken (proxy blokajı) uçtan uca test edildi —
+indeksleme, arama ve "bulunamadı" kapısı çalışıyor.
+
+Görsel-dil doğrulaması (renk/olumsuzluk sorguları) **Ollama** gerektirir ve pakete dahil
+değildir — opsiyoneldir, yokluğunda sistem CLIP-only çalışır ve arayüz bunu bildirir.
+Gerekçe ve PyInstaller/Inno Setup'ın neden seçilmediği: `scripts/paket_hazirla.py` başlığı.
+
+---
+
 ## Gizlilik önce (KVKK)
 
 Vel'Koz'un en büyük satış argümanı aynı zamanda mimari ilkesi: **hiçbir veri dışarı çıkmaz.**

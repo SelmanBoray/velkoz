@@ -1,5 +1,22 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4-5 Ağustos 2026 — Taşınabilir dağıtım paketi (üretildi ve test edildi)
+
+- **`scripts/paket_hazirla.py`**: venv + jina-clip-v2 önbelleği + kod + YOLO ağırlığı +
+  `basla.bat` / `denetle.bat` / `OKUBENI.md` → tek klasör. `--dry-run` boyut raporu verir,
+  `--zip` sıkıştırır. Üretilen paket **6.59 GB**.
+- **Uçtan uca doğrulandı — paketin İÇİNDEN, ağ kapalı (proxy blokajı):**
+  `doctor` 9/9 ✅ (yollar paketin kendi içine çözüldü) · indeksleme ✅ (25 kare + 201 kırpık) ·
+  arama ✅ (0.400 doğru sonuç) · bulunamadı kapısı ✅. Test paketi sonra silindi.
+- **PyInstaller/Inno Setup seçilmedi.** PyInstaller denenmişti: arama yolu çalıştı ama
+  `ultralytics` import'u kırıldı — tespit hattı hiç doğrulanmadı. Inno Setup 4.2 GB dosya
+  tavanı yüzünden payload bölmeyi gerektiriyor. Taşınabilir klasör aynı sonucu çok daha az
+  emekle veriyor ve hata ayıklaması açık (kaynak görünür).
+- **Kapsam kararı: Ollama pakete dahil edilmedi.** +1.1 GB çalıştırıcı +3.2 GB model demek
+  ve sessiz kurulumu bilinen bir sorun. Görsel-dil doğrulaması zaten opsiyonel — yokluğunda
+  sistem CLIP-only çalışır ve arayüz durumu bildirir. Paket ~4.3 GB küçüldü, en kırılgan
+  parça dışarıda kaldı. Karar ve gerekçe betik başlığında yazılı.
+
 ## 4 Ağustos 2026 — Çevrimdışı sertleştirme: iki gizli ağ çıkışı kapatıldı
 
 Dağıtım hazırlığında "ağ kapalıyken çalışıyor mu" testi yapıldı (proxy blokajı, localhost
