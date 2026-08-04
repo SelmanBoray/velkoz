@@ -7,7 +7,7 @@ model ~2 GB olduğundan yalnızca ilk aramada belleğe alınır.
 import threading
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from gozcu.config import settings
 from gozcu.query import (
@@ -266,8 +266,10 @@ def stream_verify(outcome: SearchOutcome, on_verdict=None) -> SearchOutcome:
     """Per-item streaming rafine (SENKRON — CLI/test). Viewer artık start_stream_job kullanır
     (worker thread, ana thread bloke olmaz). needs_vlm/VLM-hazır değilse aynen döner."""
     text = outcome.parsed.visual_text or ""
-    if not outcome.results or not needs_vlm(text) or not _vlm_ready():
+    if not outcome.results or not needs_vlm(text):
         return outcome
+    if not _vlm_ready():
+        return replace(outcome, vlm_unavailable=True)  # refine_vlm ile aynı sözleşme
     verify_top_n(outcome.results, text, on_verdict)
     return _build_verified_outcome(outcome, text)
 
@@ -337,12 +339,20 @@ def refine_vlm(outcome: SearchOutcome) -> SearchOutcome:
     """CLIP sonucunu VLM ile rafine et — progressive/async ikinci faz (ARCHITECTURE.md §8).
 
     Viewer önce `search(use_vlm=False)` ile CLIP'i ANINDA gösterir, sonra bunu çağırıp
-    VLM-doğrulanmış sonucu günceller. needs_vlm değil / VLM hazır değil / sonuç yok →
-    outcome'u AYNEN döner (ucuz no-op, çağrı güvenli).
+    VLM-doğrulanmış sonucu günceller. needs_vlm değil / sonuç yok → outcome'u AYNEN
+    döner (ucuz no-op, çağrı güvenli).
+
+    `vlm_unavailable` sözleşmesi: "bu sorgu VLM doğrulaması İSTEDİ ama alamadı". İki yol
+    da işaretlenir — Ollama BAŞTAN kapalıysa (burada) ve koşarken ÇÖKERSE
+    (`_build_verified_outcome`). Eskiden yalnız ikincisi işaretleniyordu; bayrağa güvenen
+    bir çağıran, Ollama hiç açılmamışken "doğrulandı" sanabilirdi. Viewer kendi
+    `vlm_available()` kontrolüyle zaten korunuyordu, ama savunma tek hatta kalmasın.
     """
     text = outcome.parsed.visual_text or ""
-    if not outcome.results or not needs_vlm(text) or not _vlm_ready():
-        return outcome
+    if not outcome.results or not needs_vlm(text):
+        return outcome  # VLM zaten gerekmiyor → bayrak False DOĞRU (eksiklik yok)
+    if not _vlm_ready():
+        return replace(outcome, vlm_unavailable=True)  # gerekliydi ama yok — aşağıdaki nota bak
     verify_top_n(outcome.results, text)
     return _build_verified_outcome(outcome, text)
 
@@ -366,6 +376,16 @@ def search(raw_query: str, top_k: int | None = None, source: str | None = None,
     # bakmadan boş dön — "kırmızı bisiklet" gibi yok olan nesneye makul-ama-yanlış
     # sonuç sunmayı önler (eval'de negatif örtüşme bulgusunun hedefli hafifletmesi).
     if source is None:
+        # ── BOŞ İNDEKS ≠ "nesne yok". Ayırt et, yoksa kapı yalan söyler ──
+        # Hiç video indekslenmemişken available_object_classes() boş döner ve aşağıdaki kapı
+        # "Korpusta 'otobüs' tespit edilmedi" der — sanki arşiv taranmış da bulunamamış gibi.
+        # Yeni kullanıcının ilk deneyimi tam burası: `index` çalıştırması gerektiğini anlamalı.
+        if get_store().count() == 0:
+            return SearchOutcome(
+                results=[], parsed=parsed, time_filter_dropped=False,
+                not_found_reason="İndeks boş — henüz hiç video indekslenmemiş. "
+                                 "Önce: python -m gozcu index <video_klasörü>")
+
         intent = extract_object_intent(text)
         available = get_store().available_object_classes()
         missing = intent.required - available

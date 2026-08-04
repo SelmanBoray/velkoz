@@ -1,5 +1,27 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4 Ağustos 2026 — Hata dayanıklılığı: iki sessiz yanlış-güven yolu kapatıldı
+
+Yeni kullanıcının karşılaşacağı arıza senaryoları gerçekten koşturularak test edildi
+(env-override ile simüle: Ollama kapalı, indeks boş).
+
+- **Boş indekste kapı YALAN SÖYLÜYORDU.** Hiç video indekslenmemişken "otobüs" araması
+  `"Korpusta 'otobüs' tespit edilmedi — bu nesne kayıtlarda yok."` diyordu — sanki arşiv
+  taranmış da bulunamamış gibi. Yeni kullanıcı `index` çalıştırması gerektiğini anlayamaz;
+  projenin en iyi özelliği (dürüst bulunamadı kapısı) tam da ilk deneyimde yanıltıyordu.
+  Düzeltme: kapıdan ÖNCE `count() == 0` kontrolü → *"İndeks boş — henüz hiç video
+  indekslenmemiş. Önce: python -m gozcu index <video_klasörü>"*. Gerçek bulunamadı kapısı
+  (dolu indekste `bisiklet`) aynen çalışıyor, doğrulandı.
+- **`vlm_unavailable` sözleşmesi yanlıştı.** Bayrak yalnız VLM *koşarken çökerse*
+  işaretleniyordu; Ollama **baştan kapalıysa** `refine_vlm` outcome'u aynen döndürüyor,
+  bayrak `False` kalıyordu. Viewer kendi `vlm_available()` kontrolüyle korunuyordu (kullanıcı
+  yanlış bilgi görmüyordu), ama savunma **tek hatta** kalmıştı — bayrağa güvenen herhangi bir
+  çağıran "doğrulandı" sanabilirdi. Düzeltme: `refine_vlm`/`stream_verify` artık "VLM istendi
+  ama alınamadı" durumunu da işaretliyor. VLM gerektirmeyen sorguda bayrak `False` kalır
+  (eksiklik yok) — dört kombinasyon da test edildi.
+- **Regresyon yok:** retrieval R@1 0.833 · R@5 0.833 · MRR 0.847 (C2-GT, birebir aynı),
+  Faz-2 11/12 · ayrım 2/2. `experiments/2026-08-04_dayaniklilik/`.
+
 ## 4 Ağustos 2026 — Kurulabilirlik: `doctor` komutu + CPU-only torch tuzağı kapatıldı
 
 - **Soru:** projeyi klonlayan biri (jüri/mentor/hakem) çalıştırabiliyor mu? Denetlendi,
