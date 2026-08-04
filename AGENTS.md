@@ -27,6 +27,17 @@ ARCHITECTURE.md → mimari kararlar ve gerekçeleri
 PROGRESS.md     → proje günlüğü
 ```
 
+## Kurulum denetimi
+
+`python -m gozcu doctor` — Python, torch+CUDA, torchvision, transformers kilidi, YOLO
+ağırlığı, jina-clip-v2 önbelleği, Qdrant indeksi ve Ollama/VLM'i tek tek denetler; arıza
+varsa **düzeltme komutunu** yazar. Kritik sorunda exit 1 döner (CI'da kullanılabilir).
+
+**En sinsi arıza sessiz olanı:** PyPI'ın varsayılan `torch` wheel'i Windows'ta CPU-only
+gelir; `device: "auto"` sessizce cpu'ya düşer, proje çalışır ama ~20x yavaşlar ve hiç hata
+vermez. Bu yüzden torch **önce CUDA indeksinden** kurulur (`requirements.txt` başlığı).
+Ortam sorunu bildiren herkesten önce `doctor` çıktısı istenir.
+
 ## Eval disiplini
 
 Retrieval kalitesi `eval/queries.yaml` (dondurulmuş, pre-registration) üzerinden

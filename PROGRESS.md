@@ -1,5 +1,26 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 4 Ağustos 2026 — Kurulabilirlik: `doctor` komutu + CPU-only torch tuzağı kapatıldı
+
+- **Soru:** projeyi klonlayan biri (jüri/mentor/hakem) çalıştırabiliyor mu? Denetlendi,
+  **6 tuzak** bulundu — hiçbiri hata vermiyor, sessizce yanlış davranıyordu.
+- **En kritik: sessiz CPU-only torch.** `requirements.txt`'te `torch` düz yazılıydı →
+  `pip install -r requirements.txt` Windows'ta **CPU-only wheel** getiriyor. `device: "auto"`
+  sessizce cpu'ya düşüyor: proje ÇALIŞIYOR ama ~20x yavaş ve **hiçbir hata mesajı yok**.
+  Kullanıcı yavaşlığın sebebini asla bulamaz. requirements.txt başlığına uyarı kutusu +
+  README'ye iki-adımlı kurulum (önce CUDA indeksinden torch) eklendi.
+- **`python -m gozcu doctor` eklendi** (`cli.py`). 8 bileşeni tek tek denetler: Python ·
+  torch+CUDA (GPU adı + VRAM) · torchvision CUDA derlemesi (YOLO NMS) · transformers<4.50
+  kilidi · YOLO ağırlığı · jina-clip-v2 önbelleği · Qdrant vektör sayısı · Ollama+VLM.
+  Her arıza için **düzeltme komutu** basar; kritik sorunda exit 1 (CI'ya uygun).
+  Arıza yolları env-override ile test edildi (VLM erişilemez + ağırlık yok → doğru uyarı).
+- **Diğer kapatılan boşluklar:** venv adımı ve Python 3.12 gereksinimi kurulumda yoktu ·
+  Ollama'nın kendisinin kurulumu yazılı değildi (yalnız `ollama pull` vardı) · ilk
+  çalıştırmadaki ~1.7 GB jina-clip-v2 + ~40 MB YOLO indirmesi belirtilmemişti ·
+  `yolo11m.pt` git'te yok (`.gitignore`: `*.pt`) ama README bundan bahsetmiyordu.
+- README güncellendi: korpus 13→17 video / 6231 vektör, güncel eval sayıları
+  (R@1 0.833 · R@5 0.833 · MRR 0.847 · VLM 11/12 · ayrım 2/2), test verisi lisans notu.
+
 ## 4 Ağustos 2026 — Korpus v2 (13→17 video) + GT havuzlama protokolü
 
 - **Task #4 tamamlandı.** MEVA-S3'ten 4 klip indekslendi: `meva_okul_G330` (basketbol salonu,

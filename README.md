@@ -54,6 +54,9 @@ Vel'Koz bir "CLIP'e sor" demosu değil; her katmanı gerçek CCTV'nin zorluklar�
 
 - **📏 Ölçüm disiplini.** 22 sorgu dondurulmuş (pre-registration), etiket tipine göre metrik
   (video-düzeyi Recall@k / doğrulanmış golden-frame / advisory), Wilson %95 GA, McNemar eşleştirmeli karşılaştırma. Her model/eşik değişikliği bu sabit sette test edilir.
+  Güncel: **R@1 0.833 · R@5 0.833 · MRR 0.847** (17 video) · uçtan uca VLM skoru **11/12**,
+  hard-negative ayrım ekseni **2/2**. Korpus büyütülürken ground-truth havuzlaması ayrı
+  protokole bağlı — sahte regresyon okumamak için (ARCHITECTURE.md §6d).
 
 - **⚡ İnteraktif per-item streaming.** CLIP sonucu ~0.1s'de gösterilir; VLM her adayı
   sırayla doğrulayıp o kartın rozetini **canlı** doldurur (⏳ → ✅ / 🚫). Kullanıcı beklemez.
@@ -111,20 +114,56 @@ Her kararın gerekçesi: **[ARCHITECTURE.md](ARCHITECTURE.md)** · Proje günlü
 | **3 — Gerçek pilot** | Bir sitenin 1 haftalık arşivi, saha testi | ⏳ Sırada |
 | **İleri** | Araç takibi + plaka ile "ne zaman girdi/çıktı" zaman çifti | 🔭 Planlı |
 
-Güncel korpus: **13 kamera/video · ~4.400 vektör** (kare + YOLO kırpık) — VIRAT, MEVA ve UCF trafik/gece kayıtları.
+Güncel korpus: **17 kamera/video · 6.231 vektör** (1.114 kare + 5.117 YOLO kırpık) — VIRAT,
+MEVA ve UCF trafik/gece kayıtları.
 
 ---
 
 ## Kurulum & kullanım
 
+**Gereksinimler:** Python 3.12 · NVIDIA GPU (8 GB önerilir; GPU'suz da çalışır, yavaş) ·
+[Ollama](https://ollama.com/download) (VLM doğrulama için — opsiyonel)
+
 ```bash
-# Bağımlılıklar (jina-clip-v2 için transformers<4.50 sabit)
+git clone https://github.com/SelmanBoray/gozcu.git && cd gozcu
+python -m venv .venv && .venv\Scripts\activate      # Linux/macOS: source .venv/bin/activate
+
+# 1) ÖNCE torch — CUDA indeksinden. Bu satırı atlarsan PyPI CPU-only wheel verir:
+#    proje çalışır ama ~20x yavaşlar ve hata vermez.
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+
+# 2) Kalan bağımlılıklar (jina-clip-v2 için transformers<4.50 sabit)
 pip install -r requirements.txt
 
-# VLM doğrulayıcı (opsiyonel — renk/negasyon sorguları için)
-ollama pull qwen2.5vl:3b
+# 3) VLM doğrulayıcı (opsiyonel — renk/negasyon sorguları için; Ollama kurulu olmalı)
+ollama serve                    # arka planda çalışır durumda kalmalı
+ollama pull qwen2.5vl:3b        # ~3.2 GB
 
-# Video klasörünü indeksle
+# 4) Kurulumu denetle — her bileşen tek tek kontrol edilir, arıza varsa düzeltme komutu yazar
+python -m gozcu doctor
+```
+
+`doctor` çıktısı beklenen hâli:
+
+```
+bileşen              durum
+──────────────────────────────────────────────────────────────
+Python           ✅   3.12.10
+torch (CUDA)     ✅   2.12.1+cu126 · NVIDIA GeForce RTX 4070 Laptop GPU · 8.0 GB
+torchvision      ✅   0.27.1+cu126
+transformers     ✅   4.49.0
+YOLO ağırlığı    ✅   yolo11m.pt — var (39 MB)
+jina-clip-v2     ✅   önbellekte
+Qdrant indeksi   ✅   6231 vektör
+Ollama + VLM     ✅   qwen2.5vl:3b
+
+Her şey hazır.
+```
+
+Ardından:
+
+```bash
+# Video klasörünü indeksle (ilk çalıştırma: jina-clip-v2 ~1.7 GB + yolo11m ~40 MB indirilir)
 python -m gozcu index <video_klasörü>
 
 # Terminalden ara
@@ -133,6 +172,10 @@ python -m gozcu search "dün gece otoparka giren siyah SUV"
 # Arayüzü aç
 python -m gozcu ui        # → http://localhost:8501
 ```
+
+> **Not:** Model ağırlıkları (`yolo11m.pt`, jina-clip-v2) ve `data/` klasörü git'e girmez —
+> ilk çalıştırmada otomatik indirilir. Test korpusundaki videolar araştırma lisanslıdır
+> (MEVA/VIRAT/UCF), yeniden dağıtılamaz; depoda yalnızca kod ve ölçüm sonuçları bulunur.
 
 ---
 

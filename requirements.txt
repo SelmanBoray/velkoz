@@ -1,13 +1,24 @@
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║ ÖNCE TORCH'U CUDA İNDEKSİNDEN KUR — bu dosyayı doğrudan pip'e vermeden önce ║
+# ║                                                                            ║
+# ║   pip install torch torchvision --index-url \                              ║
+# ║       https://download.pytorch.org/whl/cu126                               ║
+# ║   pip install -r requirements.txt                                          ║
+# ║                                                                            ║
+# ║ NEDEN: PyPI'daki varsayılan `torch` wheel'i Windows'ta CPU-ONLY gelir.      ║
+# ║ Proje o hâlde de ÇALIŞIR ama ~20x yavaşlar ve HİÇBİR HATA VERMEZ —         ║
+# ║ `device: "auto"` sessizce cpu'ya düşer. En sinsi arıza budur.              ║
+# ║ Denetlemek için: python -m gozcu doctor                                    ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
+
 # ── Model ve embedding ──
 torch
+# torch ile AYNI CUDA indeksinden gelmeli; CPU-only wheel'de YOLO NMS'i GPU'da çalışmaz
+torchvision
 # jina-clip-v2'nin uzak kodu yeni transformers'ta kaldırılan clip_loss'u import ediyor
 transformers<4.50
 # Faz 1.5: YOLO insan/araç tespiti (kırpık embedding)
-# DİKKAT: torchvision, torch ile AYNI CUDA indeksinden kurulmalı, yoksa
-# CPU-only wheel gelir ve YOLO NMS'i GPU'da çalışmaz:
-#   pip install torchvision --index-url https://download.pytorch.org/whl/cu126
 ultralytics
-torchvision
 timm
 einops
 onnxruntime
