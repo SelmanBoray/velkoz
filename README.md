@@ -1,9 +1,9 @@
-# Gözcü
+# Vel'Koz
 
 *[Türkçe](README.tr.md)*
 
 **Search a security-camera archive by typing what you are looking for, in Turkish.**
-Gözcü indexes recorded video, takes a query such as *"kırmızı kıyafetli adam"* ("a man in red
+Vel'Koz indexes recorded video, takes a query such as *"kırmızı kıyafetli adam"* ("a man in red
 clothing"), returns the matching moments with timestamps and plays the video from that second.
 It runs on a single mid-range GPU, loads its models from the local cache, and keeps every
 frame, embedding and query on the machine.
@@ -17,7 +17,7 @@ recordings: a site manager, a car-park operator, a security officer.
 <p align="center"><sub>Query <code>beyaz araba</code> ("white car"). Candidates come from CLIP retrieval; the colour is
 then confirmed by a vision-language model. Demo footage: US DOT/FHWA NGSIM and Wikimedia Commons, CC BY-SA 4.0.</sub></p>
 
-> The Streamlit UI and the demo cards carry the project's working name, **Vel'Koz**.
+> The Python package and the command line are named `gozcu` (Turkish for "watchman"), and so is this repository.
 
 ## What you can ask
 
@@ -34,7 +34,7 @@ Queries stay in Turkish; the system embeds them directly, with no translation st
 
 ## It says "not found" instead of guessing
 
-A similarity search always returns *something*. Gözcü has two separate checks that let it
+A similarity search always returns *something*. Vel'Koz has two separate checks that let it
 return nothing when the archive does not contain what was asked for.
 
 **1. Object inventory gate.** If the query names an object class the detector has never seen

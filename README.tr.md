@@ -1,9 +1,9 @@
-# Gözcü
+# Vel'Koz
 
 *[English](README.md)*
 
 **Güvenlik kamerası arşivinde aradığını Türkçe yazarak bul.**
-Gözcü kayıtlı videoyu indeksler, *"kırmızı kıyafetli adam"* gibi bir sorguyu alır, eşleşen
+Vel'Koz kayıtlı videoyu indeksler, *"kırmızı kıyafetli adam"* gibi bir sorguyu alır, eşleşen
 anları zaman damgasıyla getirir ve videoyu o saniyeden oynatır. Tek bir orta seviye GPU'da
 çalışır, modelleri yerel önbellekten yükler; hiçbir kare, embedding veya sorgu makineden çıkmaz.
 
@@ -16,7 +16,7 @@ otopark işletmecisi, güvenlik görevlisi.
 <p align="center"><sub><code>beyaz araba</code> sorgusu. Adaylar CLIP aramasından gelir; renk ardından bir görsel-dil
 modeliyle doğrulanır. Demo görüntüleri: US DOT/FHWA NGSIM ve Wikimedia Commons, CC BY-SA 4.0.</sub></p>
 
-> Streamlit arayüzü ve demo kartları projenin çalışma adını, **Vel'Koz**'u taşır.
+> Python paketinin ve komut satırının adı `gozcu`; bu depo da aynı adı taşıyor.
 
 ## Neler sorulabilir
 
@@ -33,7 +33,7 @@ Sorgular Türkçe kalır; sistem onları çeviri katmanı olmadan doğrudan göm
 
 ## Tahmin etmek yerine "bulunamadı" der
 
-Benzerlik araması her zaman *bir şey* döndürür. Gözcü'de, arşivde aranan şey yoksa boş dönmesini
+Benzerlik araması her zaman *bir şey* döndürür. Vel'Koz'da, arşivde aranan şey yoksa boş dönmesini
 sağlayan iki ayrı kontrol var.
 
 **1. Nesne envanteri kapısı.** Sorgu, dedektörün bu arşivde hiç görmediği bir nesne sınıfı

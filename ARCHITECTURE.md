@@ -2,7 +2,7 @@
 
 *Back to the [README](README.md) · [Türkçe README](README.tr.md)*
 
-This file records why Gözcü is built the way it is. Each decision gives the **choice**, the
+This file records why Vel'Koz is built the way it is. Each decision gives the **choice**, the
 **reason**, and the **fallback** if it fails. Dated notes were added as measurements came in,
 so later sections sometimes revise earlier ones. Experiment notes linked from here are in
 Turkish; the numbers and code paths in them are what matter.
