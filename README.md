@@ -17,7 +17,7 @@ recordings: a site manager, a car-park operator, a security officer.
 <p align="center"><sub>Query <code>beyaz araba</code> ("white car"). Candidates come from CLIP retrieval; the colour is
 then confirmed by a vision-language model. Demo footage: US DOT/FHWA NGSIM and Wikimedia Commons, CC BY-SA 4.0.</sub></p>
 
-> The Python package and the command line are named `gozcu` (Turkish for "watchman"), and so is this repository.
+> The Python package and the command line are named `gozcu` (Turkish for "watchman").
 
 ## What you can ask
 
@@ -141,7 +141,7 @@ The setup commands are written for Windows; on Linux/macOS activate the venv wit
 `source .venv/bin/activate`.
 
 ```bash
-git clone https://github.com/SelmanBoray/gozcu.git && cd gozcu
+git clone https://github.com/SelmanBoray/velkoz.git && cd velkoz
 python -m venv .venv && .venv\Scripts\activate
 
 # 1) torch first, from the CUDA index. The default PyPI wheel on Windows is CPU-only:

@@ -16,7 +16,7 @@ otopark işletmecisi, güvenlik görevlisi.
 <p align="center"><sub><code>beyaz araba</code> sorgusu. Adaylar CLIP aramasından gelir; renk ardından bir görsel-dil
 modeliyle doğrulanır. Demo görüntüleri: US DOT/FHWA NGSIM ve Wikimedia Commons, CC BY-SA 4.0.</sub></p>
 
-> Python paketinin ve komut satırının adı `gozcu`; bu depo da aynı adı taşıyor.
+> Python paketinin ve komut satırının adı `gozcu` (Türkçe "gözcü").
 
 ## Neler sorulabilir
 
@@ -136,7 +136,7 @@ Kurulum komutları Windows için yazıldı; Linux/macOS'ta venv'i `source .venv/
 etkinleştirin.
 
 ```bash
-git clone https://github.com/SelmanBoray/gozcu.git && cd gozcu
+git clone https://github.com/SelmanBoray/velkoz.git && cd velkoz
 python -m venv .venv && .venv\Scripts\activate
 
 # 1) ÖNCE torch, CUDA indeksinden. Windows'ta PyPI'ın varsayılan wheel'i CPU-only gelir:
