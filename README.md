@@ -1,251 +1,256 @@
-# Vel'Koz 👁️
+# Gözcü
 
-**Arşivini gören ve anlayan göz** — güvenlik kamerası arşivinde Türkçe doğal dil arama motoru.
-_The all-seeing eye for your camera archive. Ask it in plain Turkish; it sees, understands, and finds the moment in seconds. Fully local._
+*[Türkçe](README.tr.md)*
 
-<p>
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white">
-  <img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-CUDA-EE4C2C?logo=pytorch&logoColor=white">
-  <img alt="Qdrant" src="https://img.shields.io/badge/Qdrant-vektör%20db-DC244C">
-  <img alt="Ollama" src="https://img.shields.io/badge/Ollama-VLM-000000">
-  <img alt="Local-first" src="https://img.shields.io/badge/veri-%25100%20lokal%20(KVKK)-2ea44f">
+**Search a security-camera archive by typing what you are looking for, in Turkish.**
+Gözcü indexes recorded video, takes a query such as *"kırmızı kıyafetli adam"* ("a man in red
+clothing"), returns the matching moments with timestamps and plays the video from that second.
+It runs on a single mid-range GPU, loads its models from the local cache, and keeps every
+frame, embedding and query on the machine.
+
+It is built for the person who has to find the moment something happened in hours of
+recordings: a site manager, a car-park operator, a security officer.
+
+<p align="center">
+  <img src="docs/demo/03_beyaz_araba.png" alt="Query 'beyaz araba' (white car): four white cars found, each with its score and source clip" width="900">
 </p>
+<p align="center"><sub>Query <code>beyaz araba</code> ("white car"). Candidates come from CLIP retrieval; the colour is
+then confirmed by a vision-language model. Demo footage: US DOT/FHWA NGSIM and Wikimedia Commons, CC BY-SA 4.0.</sub></p>
 
----
+> The Streamlit UI and the demo cards carry the project's working name, **Vel'Koz**.
 
-> 🔍 **"dün gece otoparka giren siyah SUV"**
-> 🔍 **"kırmızı kıyafetli adam"**
-> 🔍 **"telefonla konuşan sürücü"**
-> 🔍 **"araçlarla dolu açık otopark"**
+## What you can ask
 
-Bir olay olduğunda saatlerce kayıt taramak yerine, **arşive soru sorarsın.** Vel'Koz ilgili
-anları saniyeler içinde bulur, doğrudan o saniyeye atlatır — ve **hiçbir görüntü binadan çıkmaz.**
+Queries stay in Turkish; the system embeds them directly, with no translation step.
 
----
+| Query | Meaning | What it exercises |
+|---|---|---|
+| `dün gece otoparka giren siyah SUV` | black SUV entering the car park last night | the time phrase becomes a timestamp filter and only the visual part is embedded |
+| `telefonla konuşan sürücü` | driver talking on the phone | behaviour, not just an object class |
+| `uzakta tek başına yürüyen insan` | a person walking alone in the distance | small subjects, found through per-object crops |
+| `araçlarla dolu açık otopark` | an open car park full of vehicles | Turkish case suffixes tell a scene query from an object query |
+| `kırmızı kıyafetli adam` | a man in red clothing | the verifier asks "is this man wearing red?", not "is this red?" |
+| `kırmızı bisiklet süren çocuk` | a child riding a red bicycle | nothing like it in the archive, so the answer is "not found" |
 
-## Çalışırken
+## It says "not found" instead of guessing
 
-Sahne sorgusu — otopark alanını bulur:
+A similarity search always returns *something*. Gözcü has two separate checks that let it
+return nothing when the archive does not contain what was asked for.
 
-![park halindeki arabalar](docs/demo/01_park_arabalar.png)
+**1. Object inventory gate.** If the query names an object class the detector has never seen
+in this archive, the search returns empty before CLIP is consulted:
 
-Davranış sorgusu — uzaktaki küçük özneyi kırpık vektöründen yakalar:
+<p align="center"><img src="docs/demo/05_negatif_bisiklet.png" alt="Query 'kırmızı bisiklet süren çocuk' returns NOT FOUND: no bicycle was detected in the corpus" width="760"></p>
 
-![kaldırımda yürüyen yaya](docs/demo/02_yuruyen_yaya.png)
+**2. Vision-language verifier.** If the object class exists but the description does not
+match, a local VLM rejects the candidates one by one:
 
-**Ve bulamadığında uydurmaz.** Vel'Koz'un iki ayrı dürüstlük katmanı var — aranan nesne
-korpusta hiç tespit edilmemişse **envanter kapısı** devreye girer:
+<p align="center"><img src="docs/demo/04_negatif_kopek.png" alt="Query 'köpek gezdiren adam' (man walking a dog) returns NOT FOUND after the VLM rejected every candidate" width="760"></p>
 
-![kırmızı bisiklet süren çocuk](docs/demo/05_negatif_bisiklet.png)
+<sub>"BULUNAMADI" means "not found". The second message reads "VLM: the described object could not be verified in the images."</sub>
 
-Nesne varsa ama tarif tutmuyorsa **görsel-dil doğrulayıcı** adayları eler:
-
-![köpek gezdiren adam](docs/demo/04_negatif_kopek.png)
-
-> Demo görüntüleri açık lisanslıdır (US DOT/FHWA NGSIM · Wikimedia Commons — CC BY-SA 4.0).
-> Ölçüm korpusu ayrı tutulur ve araştırma lisanslı olduğu için paylaşılmaz —
-> ayrıntı: [`docs/DEMO_KORPUS_LISANS.md`](docs/DEMO_KORPUS_LISANS.md).
-
-Kartları yeniden üretmek için:
-
-```bash
-QDRANT_PATH=data/qdrant_demo THUMBS_DIR=data/thumbnails_demo \
-  python scripts/demo_kartlari.py
-```
-
----
-
-## Neden Vel'Koz?
-
-- 🏢 Site yönetimleri, AVM'ler ve fabrikalar bir olay olduğunda **saatlerce video izliyor.**
-- 💸 Yurt dışı muadili **Conntour**, Mart 2026'da General Catalyst + Y Combinator'dan **$7M** aldı — pazar doğrulanmış.
-- 🇹🇷 Türkiye'de muadili **yok**; **Türkçe doğal dil** desteği kimsede yok — üstelik çeviri katmanı olmadan, doğrudan.
-- 🔒 **KVKK avantajı:** her şey lokalde çalışır (orta seviye GPU + CPU fallback). Görüntü, embedding, sorgu — hiçbiri dışarı gitmez.
-
----
-
-## Öne çıkan mühendislik
-
-Vel'Koz bir "CLIP'e sor" demosu değil; her katmanı gerçek CCTV'nin zorluklarına göre ölçülüp tasarlandı.
-
-- **🌐 Çeviri yok, doğrudan Türkçe embedding.** `jinaai/jina-clip-v2` (1024-boyut, çok dilli)
-  Türkçe sorguyu doğrudan görsel uzayına gömer. "telefonla konuşan sürücü" → davranış düzeyinde eşleşir; çeviri kaybı yok, +0 gecikme.
-
-- **🎯 Küçük özneler için YOLO-kırpık embedding.** 1080p geniş planda uzaktaki bir insan 40 pikseldir ve
-  tam-kare embedding'de kaybolur. Vel'Koz `yolo11m@1280` ile insan/araç kırpıklarını **ayrı vektör** olarak indeksler → "uzakta yürüyen tek kişi" bile bulunur. (Eval'de ölçülen marjinal katkı: **+0.250** Recall@5.)
-
-- **🧠 Türkçe durum-eki (case morphology) ile niyet ayrımı.** "araçlar**la** dolu açık otopark" → sahne;
-  "otopark**ta** yürüyen insan" → nesne. Vel'Koz baş ismi (head) **çekim ekinden** çıkarır (locative/instrumental/genitive → adjunct), pozisyondan değil — kırpık selinin sahne sorgusunu gömmesini engeller.
-
-- **🚪 Halüsinasyon yerine dürüst "bulunamadı".** Skor eşiğine güvenmek yerine, korpusun **YOLO sınıf envanterine**
-  bakar: aranan nesne kayıtlarda hiç tespit edilmemişse, makul-ama-yanlış sonuç uydurmaz — "bu nesne arşivde yok" der.
-
-- **✅ Retrieve-then-verify: küçük VLM'i doğru kullanmak.** CLIP adayları `qwen2.5vl:3b` ile
-  tam çözünürlükte doğrulanır. Kritik ders: küçük VLM'ler karmaşık JSON şemasında **rubber-stamp'liyor**
-  (kırmızı arabaya "mavi araba? evet" diyor), ama **atomik yes/no** sorularında rengi kusursuz ayırıyor (kırmızı 9/9 ↔ mavi 0/9). Vel'Koz sorguyu (nesne, renk) hedeflerine indirip yes/no sorar → CLIP'in yanlış getirdiği kırmızı arabayı "kırmızı kıyafetli adam" sorgusunda eler.
-
-- **📏 Ölçüm disiplini.** 22 sorgu dondurulmuş (pre-registration), etiket tipine göre metrik
-  (video-düzeyi Recall@k / doğrulanmış golden-frame / advisory), Wilson %95 GA, McNemar eşleştirmeli karşılaştırma. Her model/eşik değişikliği bu sabit sette test edilir.
-  Güncel: **R@1 0.833 · R@5 0.917 · R@10 1.000 · MRR 0.889** (17 video) · uçtan uca VLM skoru **11/12**,
-  hard-negative ayrım ekseni **2/2**. Korpus büyütülürken ground-truth havuzlaması ayrı
-  protokole bağlı — sahte regresyon okumamak için (ARCHITECTURE.md §6d).
-
-- **⚡ İnteraktif per-item streaming.** CLIP sonucu ~0.1s'de gösterilir; VLM her adayı
-  sırayla doğrulayıp o kartın rozetini **canlı** doldurur (⏳ → ✅ / 🚫). Kullanıcı beklemez.
-
----
-
-## Mimari
+## How it works
 
 ```mermaid
 flowchart TD
-    subgraph Offline["📼 Offline indeksleme"]
-        V[Video arşivi] --> S[Akıllı kare örnekleme<br/>hareket kapısı · dedup · OSD maskesi]
-        S --> Y[YOLO11m@1280<br/>insan/araç kırpıkları]
-        S --> E[jina-clip-v2<br/>kare + kırpık embedding]
+    subgraph Offline["Indexing (offline)"]
+        V[Video files] --> S[Frame sampling<br/>motion gate · cumulative-change dedup · OSD mask]
+        S --> Y[YOLO11m at 1280 px<br/>person and vehicle crops]
+        S --> E[jina-clip-v2<br/>frame and crop embeddings]
         Y --> E
-        E --> Q[(Qdrant<br/>lokal vektör db)]
+        E --> Q[(Qdrant<br/>embedded, on disk)]
     end
 
-    subgraph Online["🔍 Sorgu anı"]
-        T["Türkçe sorgu<br/>'dün gece giren siyah SUV'"] --> P[Ayrıştırıcı<br/>zaman ⟂ görsel · niyet · bulunamadı kapısı]
-        P --> EM[Sorgu embedding]
+    subgraph Online["Query time"]
+        T["Turkish query<br/>'dün gece giren siyah SUV'"] --> P[Rule-based parser<br/>time phrase · intent · not-found gate]
+        P --> EM[Query embedding]
         EM --> Q
-        Q --> R[Top-k aday<br/>kare + zaman damgası]
-        R --> VLM[qwen2.5vl:3b<br/>yes/no VQA doğrulama]
-        VLM --> UI[Sonuç · canlı rozet · videoyu o saniyeden oynat]
+        Q --> R[Top-k candidates<br/>frame or crop + timestamp]
+        R --> VLM[qwen2.5vl:3b via Ollama<br/>atomic yes/no checks]
+        VLM --> UI[Streamlit UI<br/>live badges · play from that second]
     end
 ```
 
-Her kararın gerekçesi: **[ARCHITECTURE.md](ARCHITECTURE.md)** · Proje günlüğü: **[PROGRESS.md](PROGRESS.md)**
+- **Turkish without translation.** `jinaai/jina-clip-v2` (1024-d, multilingual) embeds the
+  Turkish query straight into the image space ([`gozcu/embedder.py`](gozcu/embedder.py)).
+- **Small subjects get their own vectors.** A distant person in a wide 1080p shot is a few
+  dozen pixels and disappears in a whole-frame embedding. YOLO11m at 1280 px detects people
+  and vehicles and each crop is indexed as a separate vector next to its frame
+  ([`gozcu/detector.py`](gozcu/detector.py)).
+- **The sampler was rebuilt after measuring it.** The first design deduplicated frames with
+  a perceptual hash, which proved blind to a walking person three pixels tall. It now keeps
+  frames by accumulated, noise-filtered change, masks burnt-in DVR clocks and caps frames
+  per camera-hour ([`gozcu/sampler.py`](gozcu/sampler.py),
+  [`experiments/2026-07-03_gercek_cctv_testi/`](experiments/2026-07-03_gercek_cctv_testi/deney_notu.md)).
+- **Turkish morphology decides intent.** In *araçlar**la** dolu otopark* the case suffix marks
+  "vehicles" as an adjunct, so the head noun "car park" makes it a scene query, and whole
+  frames get a soft boost over the flood of vehicle crops. Root matching also checks that what
+  follows a root is a valid suffix chain, so *karanlık* ("dark") no longer matches *kar*
+  ("snow") ([`gozcu/query.py`](gozcu/query.py)).
+- **A small VLM, used where it is reliable.** Asked to fill a multi-field JSON verdict,
+  `qwen2.5vl:3b` approved a red car as "blue car" 9 times out of 9. Asked a plain yes/no
+  question it answered correctly 9/9 for red and 0/9 for blue. The verifier therefore splits
+  the query into atomic questions such as *"Is there a car?"* and *"Is the car red?"*
+  ([`gozcu/verifier.py`](gozcu/verifier.py),
+  [`experiments/2026-07-05_vlm_latency/deney_notu.md`](experiments/2026-07-05_vlm_latency/deney_notu.md)).
+- **No waiting for the VLM.** CLIP results appear first; a worker thread verifies the
+  candidates one by one and each card's badge updates as its verdict arrives
+  ([`gozcu/search.py`](gozcu/search.py), [`gozcu/viewer.py`](gozcu/viewer.py)).
 
----
+Every design decision, with the measurement behind it and what was tried and rejected, is in
+**[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
-## Teknoloji yığını
+## Measured results
 
-| Katman | Teknoloji | Not |
-|--------|-----------|-----|
-| Görsel/metin embedding | `jinaai/jina-clip-v2` (1024-d, çok dilli) | GPU fp16, Türkçe doğrudan |
-| Nesne tespiti | `yolo11m` @ 1280px | küçük özne kırpık embedding |
-| Vektör veritabanı | Qdrant (lokal mod) | zaman/kamera/kaynak filtreli arama |
-| VLM doğrulayıcı | `qwen2.5vl:3b` (Ollama) | non-thinking, atomik yes/no VQA |
-| Arayüz | Streamlit | per-item streaming, videoyu o saniyeden oynat |
-| Sorgu ayrıştırma | kural-tabanlı (Türkçe morfoloji) | zaman ⟂ görsel, niyet, bulunamadı kapısı |
+The evaluation set is 22 Turkish queries, frozen before any results were seen
+([`eval/queries_c2.yaml`](eval/queries_c2.yaml), runner [`eval/run_eval.py`](eval/run_eval.py)).
+The corpus has 17 research videos from MEVA, VIRAT and UCF (6,231 vectors: 1,114 frames and
+5,117 object crops). Latest run: [`experiments/2026-08-04_cevrimdisi_sertlestirme/rapor.md`](experiments/2026-08-04_cevrimdisi_sertlestirme/rapor.md).
 
-**Donanım hedefi:** RTX 4070 Laptop (8GB) — CLIP + VLM aynı kartta eşzamanlı sığar. Her şey lokal.
+| Retrieval (12 scorable queries) | Value | Wilson 95% CI |
+|---|---|---|
+| Recall@1 | 0.833 | 0.552 to 0.953 |
+| Recall@5 | 0.917 | 0.646 to 0.985 |
+| Recall@10 | 1.000 | 0.757 to 1.000 |
+| MRR | 0.889 | |
 
----
+| Other checks | Result | Source |
+|---|---|---|
+| Value of crop embeddings | Recall@5 0.667 with frames only, 0.917 with frames and crops (+0.250) | same report |
+| Not-found gate | 4 of 4 absent-object queries returned empty; no positive query was blocked | same report |
+| End-to-end with VLM | 11 of 12 expectations met; 2 of 2 on the "person query must not return vehicles" check | [`faz2_eval_sonuc.json`](experiments/2026-08-04_cevrimdisi_sertlestirme/faz2_eval_sonuc.json) |
+| Query embedding latency | 286 ms on GPU (warm), about 13 s on CPU | [PROGRESS.md](PROGRESS.md), 5 July 2026 entry |
 
-## Durum & yol haritası
+**Read these numbers with their size in mind.** Twelve scorable queries make an indicator and
+a regression baseline, not a benchmark: the confidence intervals above are wide. The method
+compensates where it can. Every change is compared on the same frozen set, label types get
+their own metric (video-level recall, eye-checked golden frames, advisory-only colour), and
+when the corpus grew the ground truth was extended by a written protocol instead of being
+edited to rescue a metric ([ARCHITECTURE.md §6b–6d](ARCHITECTURE.md#6b-evaluation-methodology-4-july-2026)).
+One weakness the reports keep visible: golden-frame Recall@1 is 0.667 on n=3.
 
-| Faz | Kapsam | Durum |
-|-----|--------|-------|
-| **1 — MVP indeksleyici** | Video → aranabilir indeks → Türkçe sorgu → kare + zaman | ✅ Tamam |
-| **1.5 — YOLO-kırpık embedding** | Küçük özneler için ayrı kırpık vektörleri | ✅ Tamam |
-| **2 — VLM doğrulama** | Retrieve-then-verify, yes/no VQA, renk/negasyon | ✅ Tamam |
-| **3 — Gerçek pilot** | Bir sitenin 1 haftalık arşivi, saha testi | ⏳ Sırada |
-| **İleri** | Araç takibi + plaka ile "ne zaman girdi/çıktı" zaman çifti | 🔭 Planlı |
+The evaluation corpus is research-licensed and cannot be redistributed, so reproducing these
+numbers requires obtaining MEVA, VIRAT and UCF yourself. The repository holds the code, the
+query sets and the result files.
 
-Güncel korpus: **17 kamera/video · 6.231 vektör** (1.114 kare + 5.117 YOLO kırpık) — VIRAT,
-MEVA ve UCF trafik/gece kayıtları.
+## Quick start
 
----
-
-## Kurulum & kullanım
-
-**Gereksinimler:** Python 3.12 · NVIDIA GPU (8 GB önerilir; GPU'suz da çalışır, yavaş) ·
-[Ollama](https://ollama.com/download) (VLM doğrulama için — opsiyonel)
+Requirements: Python 3.12, an NVIDIA GPU (developed on an 8 GB RTX 4070 Laptop; CPU works but
+is much slower), and optionally [Ollama](https://ollama.com/download) for the VLM verifier.
+The setup commands are written for Windows; on Linux/macOS activate the venv with
+`source .venv/bin/activate`.
 
 ```bash
 git clone https://github.com/SelmanBoray/gozcu.git && cd gozcu
-python -m venv .venv && .venv\Scripts\activate      # Linux/macOS: source .venv/bin/activate
+python -m venv .venv && .venv\Scripts\activate
 
-# 1) ÖNCE torch — CUDA indeksinden. Bu satırı atlarsan PyPI CPU-only wheel verir:
-#    proje çalışır ama ~20x yavaşlar ve hata vermez.
+# 1) torch first, from the CUDA index. The default PyPI wheel on Windows is CPU-only:
+#    everything still runs, just much slower, and nothing warns you.
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
 
-# 2) Kalan bağımlılıklar (jina-clip-v2 için transformers<4.50 sabit)
+# 2) the rest (transformers is pinned below 4.50 for jina-clip-v2)
 pip install -r requirements.txt
 
-# 3) VLM doğrulayıcı (opsiyonel — renk/negasyon sorguları için; Ollama kurulu olmalı)
-ollama serve                    # arka planda çalışır durumda kalmalı
-ollama pull qwen2.5vl:3b        # ~3.2 GB
+# 3) YOLO weights into the repo root (automatic download is disabled on purpose)
+python -c "from ultralytics import YOLO; YOLO('yolo11m.pt')"
 
-# 4) Kurulumu denetle — her bileşen tek tek kontrol edilir, arıza varsa düzeltme komutu yazar
+# 4) optional: the VLM verifier, needed for colour and negation queries (~3.2 GB)
+ollama pull qwen2.5vl:3b
+
+# 5) check the installation; each failing component prints the command that fixes it
 python -m gozcu doctor
 ```
 
-`doctor` çıktısı beklenen hâli:
-
-```
-bileşen              durum
-──────────────────────────────────────────────────────────────
-Python           ✅   3.12.10
-torch (CUDA)     ✅   2.12.1+cu126 · NVIDIA GeForce RTX 4070 Laptop GPU · 8.0 GB
-torchvision      ✅   0.27.1+cu126
-transformers     ✅   4.49.0
-YOLO ağırlığı    ✅   yolo11m.pt — var (39 MB)
-jina-clip-v2     ✅   önbellekte
-Qdrant indeksi   ✅   6231 vektör
-Ollama + VLM     ✅   qwen2.5vl:3b
-
-Her şey hazır.
-```
-
-Ardından:
+Then:
 
 ```bash
-# Video klasörünü indeksle (ilk çalıştırma: jina-clip-v2 ~1.7 GB + yolo11m ~40 MB indirilir)
-python -m gozcu index <video_klasörü>
-
-# Terminalden ara
+python -m gozcu index <video_folder>                          # first run downloads jina-clip-v2 (~1.7 GB)
 python -m gozcu search "dün gece otoparka giren siyah SUV"
-
-# Arayüzü aç
-python -m gozcu ui        # → http://localhost:8501
+python -m gozcu ui                                            # Streamlit UI at http://localhost:8501
 ```
 
-> **Not:** Model ağırlıkları (`yolo11m.pt`, jina-clip-v2) ve `data/` klasörü git'e girmez —
-> ilk çalıştırmada otomatik indirilir. Test korpusundaki videolar araştırma lisanslıdır
-> (MEVA/VIRAT/UCF), yeniden dağıtılamaz; depoda yalnızca kod ve ölçüm sonuçları bulunur.
+Without Ollama the system runs CLIP-only and the UI says so. The CLI and UI text is Turkish.
 
----
+## Local by design
 
-## Dağıtım — taşınabilir paket
+Camera footage is personal data under Turkey's data-protection law (KVKK), so nothing goes to
+a cloud service. This is enforced in code, not just stated:
 
-Hedef makinede Python, pip, internet veya yönetici hakkı **gerekmeden** çalışan bir klasör üretir:
+- Once jina-clip-v2 is cached, `HF_HUB_OFFLINE=1` is set before transformers is imported,
+  which stops the per-start check against Hugging Face ([`gozcu/config.py`](gozcu/config.py)).
+- The YOLO weight is loaded from a fixed path; if it is missing the program stops with an
+  error instead of downloading it silently ([`gozcu/detector.py`](gozcu/detector.py)).
+- The VLM is reached only through Ollama on `localhost`.
+- With all outbound traffic blocked, indexing, search and the not-found gate were tested end
+  to end ([PROGRESS.md](PROGRESS.md), 4–5 August 2026 entries). `doctor` reports whether the
+  offline lock is active.
+
+One thing the code does not yet switch off: Streamlit's own anonymous usage statistics. For a
+fully silent deployment, set `browser.gatherUsageStats = false` in Streamlit's `config.toml`.
+
+## Portable package
+
+[`scripts/paket_hazirla.py`](scripts/paket_hazirla.py) builds a Windows folder that runs
+without Python, pip, internet access or admin rights: the venv, the model cache, the code and
+the YOLO weight, plus `basla.bat` (start the UI) and `denetle.bat` (run `doctor`). The
+generated package was 6.59 GB and was tested end to end from inside the folder with the
+network blocked ([PROGRESS.md](PROGRESS.md)). Ollama is left out to keep the package smaller
+and simpler; the script header explains why PyInstaller and Inno Setup were rejected.
 
 ```bash
-python scripts/paket_hazirla.py --dry-run                  # önce boyut raporu
-python scripts/paket_hazirla.py --hedef D:/velkoz_paket    # klasörü üret
-python scripts/paket_hazirla.py --hedef D:/velkoz_paket --zip
+python scripts/paket_hazirla.py --dry-run                  # size report only
+python scripts/paket_hazirla.py --hedef D:/velkoz_paket    # build the folder (--zip to compress)
 ```
 
-Paket ~6.6 GB (venv 5.2 GB + model önbelleği 1.65 GB + kod). İçinde `basla.bat` (arayüzü
-açar), `denetle.bat` (`doctor` çalıştırır) ve `OKUBENI.md` bulunur. İndeks ve küçük resimler
-paketin içindeki `data\` altına yazılır — klasörü taşıdığında arşivin de birlikte gelir.
+## Limitations
 
-**Doğrulandı:** paket, ağ tamamen kapalıyken (proxy blokajı) uçtan uca test edildi —
-indeksleme, arama ve "bulunamadı" kapısı çalışıyor.
+- **Small evaluation set** (see above), and no field pilot yet: everything is measured on
+  public research footage, not on a customer's week of recordings.
+- **Timestamps come from file modification time** minus video duration. Real DVR exports can
+  lie about this; cross-checking with the on-screen clock (OCR) is planned, not built.
+- **No identity tracking.** The UI groups hits into "seen between 21:26:07 and 21:28:18" by
+  time proximity and says that it does. It does not claim "entered" or "left".
+- **People below roughly 10 px** fall under YOLO's detection floor.
+- **VLM verification is slow**: a few seconds per candidate, tens of seconds for a full page.
+  Streaming hides it but does not remove it.
+- **Suffix checking is not full morphology**: *kara* can still read as *kar* + dative *-a*.
+  A morphological analyser would fix it.
+- **The demo clips are not real CCTV.** Openly licensed, redistributable surveillance-angle
+  footage turned out to be almost nonexistent; see
+  [`docs/DEMO_KORPUS_LISANS.md`](docs/DEMO_KORPUS_LISANS.md).
 
-Görsel-dil doğrulaması (renk/olumsuzluk sorguları) **Ollama** gerektirir ve pakete dahil
-değildir — opsiyoneldir, yokluğunda sistem CLIP-only çalışır ve arayüz bunu bildirir.
-Gerekçe ve PyInstaller/Inno Setup'ın neden seçilmediği: `scripts/paket_hazirla.py` başlığı.
+## Status
 
----
+| Phase | Scope | State |
+|---|---|---|
+| 1 | Video to searchable index, Turkish query, frame and timestamp | done |
+| 1.5 | Separate vectors for person and vehicle crops | done |
+| 2 | VLM verification: colour, negation, not-found | done |
+| 3 | Field pilot on one site's week of recordings | next |
+| later | Vehicle tracking and plates, for "when did it enter and leave" | planned |
 
-## Gizlilik önce (KVKK)
+## Licensing
 
-Vel'Koz'un en büyük satış argümanı aynı zamanda mimari ilkesi: **hiçbir veri dışarı çıkmaz.**
+No license has been chosen for this repository yet. Note the licenses of the models it runs:
+`jina-clip-v2` is CC BY-NC 4.0, `qwen2.5vl:3b` is under the Qwen Research license (both
+non-commercial), and Ultralytics YOLO11 is AGPL-3.0. A commercial deployment would need
+commercial licenses or replacement models. Replacing the VLM was measured: `qwen3-vl:2b`
+dropped the end-to-end score from 11/12 to 9/12, so it was rejected
+([`docs/LISANS_DURUMU.md`](docs/LISANS_DURUMU.md), in Turkish).
 
-Bu bir iddia değil, **denetlenen** bir güvence: modeller yerel önbellekten yüklenir
-(`HF_HUB_OFFLINE`), YOLO ağırlığı sabit yoldan okunur ve bulunamazsa sessizce indirilmek
-yerine hata verir. Ağ tamamen kapalıyken hem arama hem indeksleme uçtan uca test edilmiştir.
-`python -m gozcu doctor` çevrimdışı kilidin etkin olduğunu satır olarak raporlar.
-Görüntüler, embedding'ler, sorgular ve VLM çağrılarının tamamı lokalde çalışır — bulut yok, API yok, üçüncü taraf yok. Bu, güvenlik kamerası verisiyle çalışmanın tek etik ve yasal yolu.
+The measurement corpus (MEVA, VIRAT, UCF) is research-licensed and is not in this repository.
+The demo images in `docs/demo/` come from US DOT/FHWA NGSIM and Wikimedia Commons under
+CC BY-SA 4.0; full attribution is in [`docs/DEMO_KORPUS_LISANS.md`](docs/DEMO_KORPUS_LISANS.md).
 
----
+## Repository layout
 
-<p align="center">
-  <sub>Türkçe için, Türkçe ile. Bir Teknofest yan-ürünü olarak başladı, bağımsız bir ürüne dönüşüyor.</sub>
-</p>
+```
+gozcu/         the package: sampler, detector, embedder, store, query parser, search, verifier, UI, CLI
+eval/          frozen query sets and the evaluation runners
+experiments/   one folder per experiment: notes, reports, result JSON (no images or video)
+scripts/       demo-card generator and portable-package builder
+docs/          demo images, licensing notes and other project documents (Turkish)
+```
+
+Most comments and project notes are in Turkish; [ARCHITECTURE.md](ARCHITECTURE.md) is the
+English entry point to the design.
