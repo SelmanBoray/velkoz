@@ -7,10 +7,10 @@ Doğru-pozitif kontrol: "man" (insan kırpığında evet olmalı), "car" (araba 
 
 import requests
 
-from gozcu.config import settings
-from gozcu.recrop import vlm_image_for_hit
-from gozcu.search import search as run_search
-from gozcu.verifier import _encode
+from velkoz.config import settings
+from velkoz.recrop import vlm_image_for_hit
+from velkoz.search import search as run_search
+from velkoz.verifier import _encode
 
 MODEL = settings.vlm_model
 

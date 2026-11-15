@@ -18,7 +18,7 @@ import imagehash
 import numpy as np
 from PIL import Image
 
-from gozcu.config import settings
+from velkoz.config import settings
 
 
 @dataclass

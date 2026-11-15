@@ -1,10 +1,10 @@
 """Komut satırı arayüzü.
 
 Kullanım:
-    python -m gozcu index C:/videolar/
-    python -m gozcu search "dün gece giren beyaz Transit"
-    python -m gozcu stats
-    python -m gozcu ui
+    python -m velkoz index C:/videolar/
+    python -m velkoz search "dün gece giren beyaz Transit"
+    python -m velkoz stats
+    python -m velkoz ui
 """
 
 import os
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import typer
 
-from gozcu.config import settings
+from velkoz.config import settings
 
 # ── Windows konsolunda Türkçe karakter güvencesi ──
 if hasattr(sys.stdout, "reconfigure"):
@@ -34,11 +34,11 @@ def index(
 ) -> None:
     """Klasördeki tüm videoları örnekle, embedle ve indeksle."""
     # ── Ağır importlar komut içinde: 'search --help' model yüklemesin ──
-    from gozcu.detector import Detection, Detector, cap_crops, crop_image, suppress_static
-    from gozcu.embedder import Embedder
-    from gozcu.sampler import FrameRecord, sample_video, video_start_ts
-    from gozcu.store import FrameStore
-    from gozcu.thumbs import write_crop_thumb, write_thumb
+    from velkoz.detector import Detection, Detector, cap_crops, crop_image, suppress_static
+    from velkoz.embedder import Embedder
+    from velkoz.sampler import FrameRecord, sample_video, video_start_ts
+    from velkoz.store import FrameStore
+    from velkoz.thumbs import write_crop_thumb, write_thumb
 
     videos = sorted(p for p in folder.iterdir() if p.suffix.lower() in VIDEO_EXTS)
     if not videos:
@@ -125,7 +125,7 @@ def search(
     top_k: int = typer.Option(settings.default_top_k, help="Kaç sonuç gösterilsin"),
 ) -> None:
     """Türkçe sorguyla indekste ara, sonuçları tabloda göster."""
-    from gozcu.search import search as run_search
+    from velkoz.search import search as run_search
 
     outcome = run_search(query, top_k=top_k)
     parsed = outcome.parsed
@@ -149,7 +149,7 @@ def search(
         raise typer.Exit(0)
 
     if not outcome.results:
-        typer.echo("Sonuç bulunamadı. Önce `python -m gozcu index <klasör>` çalıştırıldı mı?")
+        typer.echo("Sonuç bulunamadı. Önce `python -m velkoz index <klasör>` çalıştırıldı mı?")
         raise typer.Exit(1)
 
     # ── Sonuç tablosu ──
@@ -167,7 +167,7 @@ def search(
 @app.command()
 def stats() -> None:
     """İndeks istatistiklerini göster."""
-    from gozcu.store import FrameStore
+    from velkoz.store import FrameStore
 
     store = FrameStore()
     typer.echo(f"İndeksteki toplam kare: {store.count()}")
@@ -258,11 +258,11 @@ def doctor() -> None:
 
     # ── 7. Qdrant indeksi — dolu mu, kaç vektör ──
     try:
-        from gozcu.store import FrameStore
+        from velkoz.store import FrameStore
 
         n = FrameStore().count()
         add("Qdrant indeksi", OK if n else WARN, f"{n} vektör",
-            "" if n else "python -m gozcu index <video_klasörü>")
+            "" if n else "python -m velkoz index <video_klasörü>")
     except Exception as exc:  # depo bozuk/kilitli — kurulum sorunu olarak raporla
         add("Qdrant indeksi", FAIL, f"açılamadı: {type(exc).__name__}",
             f"{settings.qdrant_path} kilitli olabilir — diğer süreçleri kapat")
@@ -276,7 +276,7 @@ def doctor() -> None:
 
     # ── 8. Ollama + VLM (opsiyonel: yoksa CLIP-only çalışır) ──
     try:
-        from gozcu.search import vlm_available
+        from velkoz.search import vlm_available
 
         if vlm_available():
             add("Ollama + VLM", OK, settings.vlm_model)

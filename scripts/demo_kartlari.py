@@ -22,8 +22,8 @@ sys.path.insert(0, str(_ROOT))
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-from gozcu.config import settings  # noqa: E402
-from gozcu.search import search  # noqa: E402
+from velkoz.config import settings  # noqa: E402
+from velkoz.search import search  # noqa: E402
 
 # ── Lisans emniyet kilidi: ölçüm korpusuyla tanıtım görseli üretilemez ──
 if "qdrant_demo" not in str(settings.qdrant_path):

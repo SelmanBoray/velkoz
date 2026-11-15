@@ -9,8 +9,8 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass, field, replace
 
-from gozcu.config import settings
-from gozcu.query import (
+from velkoz.config import settings
+from velkoz.query import (
     VEHICLE_CLASSES,
     ParsedQuery,
     extract_object_intent,
@@ -37,7 +37,7 @@ def _vlm_ready(force: bool = False) -> bool:
     global _vlm_available, _vlm_checked_at
     now = time.time()
     if force or _vlm_available is None or (now - _vlm_checked_at) > _VLM_TTL_S:
-        from gozcu.verifier import is_available
+        from velkoz.verifier import is_available
         _vlm_available = is_available()
         _vlm_checked_at = now
     return _vlm_available
@@ -62,7 +62,7 @@ def get_embedder():
     yapısal çözüm (ARCHITECTURE.md §8). İndeksleme ayrı süreç, GPU kullanır (cli.py)."""
     global _embedder
     if _embedder is None:
-        from gozcu.embedder import Embedder
+        from velkoz.embedder import Embedder
         _embedder = Embedder(device=settings.query_device)
     return _embedder
 
@@ -70,7 +70,7 @@ def get_embedder():
 def get_store():
     global _store
     if _store is None:
-        from gozcu.store import FrameStore
+        from velkoz.store import FrameStore
         _store = FrameStore()
     return _store
 
@@ -183,7 +183,7 @@ def verify_top_n(results: list[dict], visual_text: str, on_verdict=None) -> None
 
     YES/NO VQA sözleşmesi: sorgu (nesne, renk) hedeflerine indirgenir; verifier atomik
     sorar (rubber-stamp/thinking-loop panzehiri — ARCHITECTURE.md §8)."""
-    from gozcu.verifier import verify_hit
+    from velkoz.verifier import verify_hit
 
     obj_en, color_en = augment_intent(visual_text)
     for i, h in enumerate(results[: settings.vlm_top_n]):
@@ -312,7 +312,7 @@ def start_stream_job(job_id: str, outcome: SearchOutcome) -> StreamJob | None:
         _stream_jobs[job_id] = job
 
     def _worker() -> None:
-        from gozcu.verifier import verify_hit
+        from velkoz.verifier import verify_hit
         obj_en, color_en = augment_intent(text)
         for h in outcome.results[: settings.vlm_top_n]:
             h["_vlm"] = verify_hit(h, obj_en, color_en)  # GIL-atomik atama
@@ -384,7 +384,7 @@ def search(raw_query: str, top_k: int | None = None, source: str | None = None,
             return SearchOutcome(
                 results=[], parsed=parsed, time_filter_dropped=False,
                 not_found_reason="İndeks boş — henüz hiç video indekslenmemiş. "
-                                 "Önce: python -m gozcu index <video_klasörü>")
+                                 "Önce: python -m velkoz index <video_klasörü>")
 
         intent = extract_object_intent(text)
         available = get_store().available_object_classes()

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-from gozcu.config import settings
+from velkoz.config import settings
 
 # ── COCO sınıf kimliği → Türkçe etiket ──
 CLASSES = {0: "insan", 1: "bisiklet", 2: "araba", 3: "motosiklet", 5: "otobüs", 7: "kamyon"}

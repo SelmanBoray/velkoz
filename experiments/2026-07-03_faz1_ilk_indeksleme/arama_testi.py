@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from gozcu.search import search
+from velkoz.search import search
 
 # ── Test sorguları: görsel çeşitlilik + zaman filtresi geri düşüş senaryosu ──
 QUERIES = [

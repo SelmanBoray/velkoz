@@ -10,7 +10,7 @@ import torch
 from PIL import Image
 from transformers import AutoModel
 
-from gozcu.config import settings
+from velkoz.config import settings
 
 
 def _l2_normalize(vectors: np.ndarray) -> np.ndarray:

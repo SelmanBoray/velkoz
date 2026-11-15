@@ -6,8 +6,8 @@ extract_vqa_targets → verify_hit → _fuse_verdicts zinciri çalışıyor mu?
 
 import time
 
-from gozcu.query import extract_vqa_targets
-from gozcu.search import search as run_search
+from velkoz.query import extract_vqa_targets
+from velkoz.search import search as run_search
 
 
 def show(query: str) -> None:

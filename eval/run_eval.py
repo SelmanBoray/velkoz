@@ -75,8 +75,8 @@ def _golden_rank(ranked: list[dict], gv: str, gf: int) -> int | None:
 
 def _raw_hits(query: str, fetch_k: int) -> list[dict]:
     """Prod hattının tekilleştirme ÖNCESI ham sonucu — golden fail_attribution için."""
-    from gozcu.query import parse_query
-    from gozcu.search import get_embedder, get_store
+    from velkoz.query import parse_query
+    from velkoz.search import get_embedder, get_store
 
     parsed = parse_query(query)
     vec = get_embedder().encode_text(parsed.visual_text or query)
@@ -91,8 +91,8 @@ def _raw_hits(query: str, fetch_k: int) -> list[dict]:
 # ── Tek sorgu değerlendirmesi ──
 
 def eval_query(entry: dict, k: int) -> dict:
-    from gozcu.config import settings
-    from gozcu.search import parse_query, search
+    from velkoz.config import settings
+    from velkoz.search import parse_query, search
 
     q = entry["query"]
     gt = entry["gt_type"]
@@ -380,8 +380,8 @@ def main() -> None:
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    from gozcu.config import settings
-    from gozcu.search import get_store
+    from velkoz.config import settings
+    from velkoz.search import get_store
 
     entries = yaml.safe_load(Path(args.queries).read_text(encoding="utf-8"))
     print(f"{len(entries)} sorgu yüklendi. İndeks + model ısıtılıyor...")

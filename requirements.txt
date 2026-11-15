@@ -8,7 +8,7 @@
 # ║ NEDEN: PyPI'daki varsayılan `torch` wheel'i Windows'ta CPU-ONLY gelir.      ║
 # ║ Proje o hâlde de ÇALIŞIR ama ~20x yavaşlar ve HİÇBİR HATA VERMEZ —         ║
 # ║ `device: "auto"` sessizce cpu'ya düşer. En sinsi arıza budur.              ║
-# ║ Denetlemek için: python -m gozcu doctor                                    ║
+# ║ Denetlemek için: python -m velkoz doctor                                   ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
 # ── Model ve embedding ──

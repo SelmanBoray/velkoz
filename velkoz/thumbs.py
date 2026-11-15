@@ -5,7 +5,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from gozcu.config import settings
+from velkoz.config import settings
 
 
 def write_thumb(image: np.ndarray, video_id: str, frame_idx: int) -> Path:

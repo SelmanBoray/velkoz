@@ -1,6 +1,6 @@
 """Streamlit arayüzü — sorgu → CLIP ANINDA → VLM per-item CANLI doğrulama (streaming).
 
-Çalıştırma: python -m gozcu ui   (veya: streamlit run gozcu/viewer.py)
+Çalıştırma: python -m velkoz ui   (veya: streamlit run velkoz/viewer.py)
 
 Faz 2 async rafine (ARCHITECTURE.md §8b): CLIP sonucu ~1s'de gösterilir; renk/negasyon
 sorgusunda VLM her adayı SIRAYLA doğrular ve o kartın rozetini CANLI günceller (⏳→✅/🚫).
@@ -18,11 +18,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 
-from gozcu.config import settings
-from gozcu.query import needs_vlm
-from gozcu.search import (clear_stream_job, cluster_events, get_stream_job, start_stream_job,
+from velkoz.config import settings
+from velkoz.query import needs_vlm
+from velkoz.search import (clear_stream_job, cluster_events, get_stream_job, start_stream_job,
                           vlm_available)
-from gozcu.search import search as run_search
+from velkoz.search import search as run_search
 
 st.set_page_config(page_title="Vel'Koz", page_icon="👁️", layout="wide")
 
@@ -32,7 +32,7 @@ def _warmup_vlm() -> bool:
     """Açılışta VLM'i ARKA PLANDA ısıt (thread → UI'ı bloke etmez). Kullanıcı sorguyu
     yazarken model yüklenir; ilk gerçek sorgu cold olmaz. cache_resource: süreçte bir kez."""
     import threading
-    from gozcu.verifier import warmup
+    from velkoz.verifier import warmup
     threading.Thread(target=warmup, daemon=True).start()
     return True
 
@@ -50,7 +50,7 @@ def _card_image(thumb_path: str, bbox: tuple | None, dim: bool = False):
     reddedilen aday 'eleniyor' görünür, 'sonuç' değil)."""
     from PIL import Image
 
-    from gozcu.recrop import draw_bbox
+    from velkoz.recrop import draw_bbox
     img = Image.open(thumb_path).convert("RGB")
     if bbox:
         img = draw_bbox(img, list(bbox))
@@ -154,7 +154,7 @@ def render_outcome(outcome, note: str) -> None:
     if outcome.not_found_reason:
         st.info(f"🔍 **Bulunamadı** — {outcome.not_found_reason}")
     elif not outcome.results:
-        st.error("Sonuç yok. Önce `python -m gozcu index <klasör>` ile indeksleyin.")
+        st.error("Sonuç yok. Önce `python -m velkoz index <klasör>` ile indeksleyin.")
     else:
         render_timeline(outcome.results)  # 🕐 zaman çizelgesi (ne zaman görüldü)
         sel = st.session_state.get("selected")

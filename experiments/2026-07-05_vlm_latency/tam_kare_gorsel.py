@@ -4,10 +4,10 @@
 
 from pathlib import Path
 
-from gozcu.query import extract_vqa_targets
-from gozcu.recrop import vlm_frame_for_hit
-from gozcu.search import search as run_search
-from gozcu.verifier import verify_hit
+from velkoz.query import extract_vqa_targets
+from velkoz.recrop import vlm_frame_for_hit
+from velkoz.search import search as run_search
+from velkoz.verifier import verify_hit
 
 OUT = Path(r"C:\Users\Selman\AppData\Local\Temp\claude\C--\246f84c1-3962-4f56-8c68-6fbcb5b797c9\scratchpad\suv_frames")
 OUT.mkdir(parents=True, exist_ok=True)

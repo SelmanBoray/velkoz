@@ -211,7 +211,7 @@ printed with a **Wilson 95% CI** (n ≈ 12, so an indicator, not a benchmark); c
 *right class*. "kırmızı kıyafetli adam" (man in red clothing) returning five results, three of
 them red *cars*, would still pass as `has_results`. That was exactly the bug of the session.
 
-**`forbid: vehicles` is symbolic** and resolves to `gozcu.query.VEHICLE_CLASSES`. The stored
+**`forbid: vehicles` is symbolic** and resolves to `velkoz.query.VEHICLE_CLASSES`. The stored
 `yolo_class` values are **Turkish** (araba/kamyon/otobüs); an English list typed by hand would
 never match and the test would silently pass. The symbolic value closes that trap structurally.
 

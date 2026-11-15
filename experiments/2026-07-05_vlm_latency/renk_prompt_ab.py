@@ -4,11 +4,11 @@ A/B: mevcut vs sıkı ("predominantly {color}, teal/yeşil/gri değil"). AI Engi
 
 import requests
 
-from gozcu.config import settings
-from gozcu.query import extract_vqa_targets
-from gozcu.recrop import vlm_image_for_hit
-from gozcu.search import search as run_search
-from gozcu.verifier import _encode
+from velkoz.config import settings
+from velkoz.query import extract_vqa_targets
+from velkoz.recrop import vlm_image_for_hit
+from velkoz.search import search as run_search
+from velkoz.verifier import _encode
 
 
 def ask(img_b64: str, q: str) -> bool | None:

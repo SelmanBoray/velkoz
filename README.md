@@ -17,8 +17,6 @@ recordings: a site manager, a car-park operator, a security officer.
 <p align="center"><sub>Query <code>beyaz araba</code> ("white car"). Candidates come from CLIP retrieval; the colour is
 then confirmed by a vision-language model. Demo footage: US DOT/FHWA NGSIM and Wikimedia Commons, CC BY-SA 4.0.</sub></p>
 
-> The Python package and the command line are named `gozcu` (Turkish for "watchman").
-
 ## What you can ask
 
 Queries stay in Turkish; the system embeds them directly, with no translation step.
@@ -72,30 +70,30 @@ flowchart TD
 ```
 
 - **Turkish without translation.** `jinaai/jina-clip-v2` (1024-d, multilingual) embeds the
-  Turkish query straight into the image space ([`gozcu/embedder.py`](gozcu/embedder.py)).
+  Turkish query straight into the image space ([`velkoz/embedder.py`](velkoz/embedder.py)).
 - **Small subjects get their own vectors.** A distant person in a wide 1080p shot is a few
   dozen pixels and disappears in a whole-frame embedding. YOLO11m at 1280 px detects people
   and vehicles and each crop is indexed as a separate vector next to its frame
-  ([`gozcu/detector.py`](gozcu/detector.py)).
+  ([`velkoz/detector.py`](velkoz/detector.py)).
 - **The sampler was rebuilt after measuring it.** The first design deduplicated frames with
   a perceptual hash, which proved blind to a walking person three pixels tall. It now keeps
   frames by accumulated, noise-filtered change, masks burnt-in DVR clocks and caps frames
-  per camera-hour ([`gozcu/sampler.py`](gozcu/sampler.py),
+  per camera-hour ([`velkoz/sampler.py`](velkoz/sampler.py),
   [`experiments/2026-07-03_gercek_cctv_testi/`](experiments/2026-07-03_gercek_cctv_testi/deney_notu.md)).
 - **Turkish morphology decides intent.** In *araçlar**la** dolu otopark* the case suffix marks
   "vehicles" as an adjunct, so the head noun "car park" makes it a scene query, and whole
   frames get a soft boost over the flood of vehicle crops. Root matching also checks that what
   follows a root is a valid suffix chain, so *karanlık* ("dark") no longer matches *kar*
-  ("snow") ([`gozcu/query.py`](gozcu/query.py)).
+  ("snow") ([`velkoz/query.py`](velkoz/query.py)).
 - **A small VLM, used where it is reliable.** Asked to fill a multi-field JSON verdict,
   `qwen2.5vl:3b` approved a red car as "blue car" 9 times out of 9. Asked a plain yes/no
   question it answered correctly 9/9 for red and 0/9 for blue. The verifier therefore splits
   the query into atomic questions such as *"Is there a car?"* and *"Is the car red?"*
-  ([`gozcu/verifier.py`](gozcu/verifier.py),
+  ([`velkoz/verifier.py`](velkoz/verifier.py),
   [`experiments/2026-07-05_vlm_latency/deney_notu.md`](experiments/2026-07-05_vlm_latency/deney_notu.md)).
 - **No waiting for the VLM.** CLIP results appear first; a worker thread verifies the
   candidates one by one and each card's badge updates as its verdict arrives
-  ([`gozcu/search.py`](gozcu/search.py), [`gozcu/viewer.py`](gozcu/viewer.py)).
+  ([`velkoz/search.py`](velkoz/search.py), [`velkoz/viewer.py`](velkoz/viewer.py)).
 
 Every design decision, with the measurement behind it and what was tried and rejected, is in
 **[ARCHITECTURE.md](ARCHITECTURE.md)**.
@@ -158,15 +156,15 @@ python -c "from ultralytics import YOLO; YOLO('yolo11m.pt')"
 ollama pull qwen2.5vl:3b
 
 # 5) check the installation; each failing component prints the command that fixes it
-python -m gozcu doctor
+python -m velkoz doctor
 ```
 
 Then:
 
 ```bash
-python -m gozcu index <video_folder>                          # first run downloads jina-clip-v2 (~1.7 GB)
-python -m gozcu search "dün gece otoparka giren siyah SUV"
-python -m gozcu ui                                            # Streamlit UI at http://localhost:8501
+python -m velkoz index <video_folder>                         # first run downloads jina-clip-v2 (~1.7 GB)
+python -m velkoz search "dün gece otoparka giren siyah SUV"
+python -m velkoz ui                                           # Streamlit UI at http://localhost:8501
 ```
 
 Without Ollama the system runs CLIP-only and the UI says so. The CLI and UI text is Turkish.
@@ -177,9 +175,9 @@ Camera footage is personal data under Turkey's data-protection law (KVKK), so no
 a cloud service. This is enforced in code, not just stated:
 
 - Once jina-clip-v2 is cached, `HF_HUB_OFFLINE=1` is set before transformers is imported,
-  which stops the per-start check against Hugging Face ([`gozcu/config.py`](gozcu/config.py)).
+  which stops the per-start check against Hugging Face ([`velkoz/config.py`](velkoz/config.py)).
 - The YOLO weight is loaded from a fixed path; if it is missing the program stops with an
-  error instead of downloading it silently ([`gozcu/detector.py`](gozcu/detector.py)).
+  error instead of downloading it silently ([`velkoz/detector.py`](velkoz/detector.py)).
 - The VLM is reached only through Ollama on `localhost`.
 - With all outbound traffic blocked, indexing, search and the not-found gate were tested end
   to end ([PROGRESS.md](PROGRESS.md), 4–5 August 2026 entries). `doctor` reports whether the
@@ -245,7 +243,7 @@ CC BY-SA 4.0; full attribution is in [`docs/DEMO_KORPUS_LISANS.md`](docs/DEMO_KO
 ## Repository layout
 
 ```
-gozcu/         the package: sampler, detector, embedder, store, query parser, search, verifier, UI, CLI
+velkoz/        the package: sampler, detector, embedder, store, query parser, search, verifier, UI, CLI
 eval/          frozen query sets and the evaluation runners
 experiments/   one folder per experiment: notes, reports, result JSON (no images or video)
 scripts/       demo-card generator and portable-package builder

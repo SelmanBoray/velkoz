@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from gozcu.search import cluster_events, search
+from velkoz.search import cluster_events, search
 
 
 def main() -> None:

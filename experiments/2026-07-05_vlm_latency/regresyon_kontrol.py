@@ -1,7 +1,7 @@
 """Füzyon değişikliği (present=False her iki modda düşer) iyi renk vakasını bozdu mu?
 Kırmızı arabalar hâlâ kalmalı (present=True → düşmez)."""
 
-from gozcu.search import search
+from velkoz.search import search
 
 
 def main() -> None:

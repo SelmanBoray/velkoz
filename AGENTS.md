@@ -19,7 +19,7 @@ Vel'Koz: güvenlik kamerası arşivinde Türkçe doğal dil arama motoru. Lokal-
 ## Dizin yapısı
 
 ```
-gozcu/          → Python paketi (pipeline modülleri)
+velkoz/         → Python paketi (pipeline modülleri)
 eval/           → dondurulmuş sorgu seti (queries.yaml) + koşucu (run_eval.py)
 data/           → test videoları + indeks (git'e girmez)
 experiments/    → test çıktıları (deney notları git'e girer, görüntü girmez)
@@ -49,7 +49,7 @@ doğrulaması ZORUNLU; kabul/ret gerekçeleri `docs/DEMO_KORPUS_LISANS.md`'ye ya
 
 ## Kurulum denetimi
 
-`python -m gozcu doctor` — Python, torch+CUDA, torchvision, transformers kilidi, YOLO
+`python -m velkoz doctor` — Python, torch+CUDA, torchvision, transformers kilidi, YOLO
 ağırlığı, jina-clip-v2 önbelleği, Qdrant indeksi ve Ollama/VLM'i tek tek denetler; arıza
 varsa **düzeltme komutunu** yazar. Kritik sorunda exit 1 döner (CI'da kullanılabilir).
 

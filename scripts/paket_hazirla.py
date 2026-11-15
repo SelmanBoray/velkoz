@@ -35,7 +35,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 # ── Pakete girecek kod/veri (kaynak, hedef_ad, zorunlu_mu) ──
 KOD_PARCALARI = [
-    ("gozcu", "gozcu", True),
+    ("velkoz", "velkoz", True),
     ("scripts", "scripts", False),
     ("eval", "eval", False),
     ("yolo11m.pt", "yolo11m.pt", True),
@@ -68,11 +68,11 @@ echo   Vel'Koz baslatiliyor...
 echo   Tarayici acilmazsa: http://localhost:8501
 echo.
 
-"%KOK%.venv\Scripts\python.exe" -m streamlit run "%KOK%gozcu\viewer.py"
+"%KOK%.venv\Scripts\python.exe" -m streamlit run "%KOK%velkoz\viewer.py"
 if errorlevel 1 (
   echo.
   echo   HATA: baslatilamadi. Tani icin su komutu calistirin:
-  echo     "%KOK%.venv\Scripts\python.exe" -m gozcu doctor
+  echo     "%KOK%.venv\Scripts\python.exe" -m velkoz doctor
   pause
 )
 endlocal
@@ -85,7 +85,7 @@ set "PYTHONIOENCODING=utf-8"
 set "DATA_DIR=%KOK%data"
 set "HF_HOME=%KOK%hf_cache"
 set "HF_HUB_OFFLINE=1"
-"%KOK%.venv\Scripts\python.exe" -m gozcu doctor
+"%KOK%.venv\Scripts\python.exe" -m velkoz doctor
 pause
 endlocal
 """
@@ -110,7 +110,7 @@ arıza varsa çözüm komutunu yazar.
 `basla.bat`'ın yanındaki komut satırından:
 
 ```
-.venv\\Scripts\\python.exe -m gozcu index "C:\\kayitlar"
+.venv\\Scripts\\python.exe -m velkoz index "C:\\kayitlar"
 ```
 
 İndeks ve küçük resimler bu klasörün içindeki `data\\` altına yazılır — paketi

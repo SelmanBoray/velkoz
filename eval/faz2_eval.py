@@ -33,11 +33,11 @@ def _outcome_label(outcome) -> str:
 def _forbid_set(entry) -> set:
     """queries yaml `forbid` alanını gerçek YOLO etiket setine çevir.
 
-    'vehicles' → gozcu.query.VEHICLE_CLASSES (TEK KAYNAK). Depodaki yolo_class TÜRKÇE
+    'vehicles' → velkoz.query.VEHICLE_CLASSES (TEK KAYNAK). Depodaki yolo_class TÜRKÇE
     (araba/kamyon/otobüs) — İngilizce liste elle yazılırsa eşleşme hiç olmaz, kontrol
     sessizce boşa geçer ve sahte-PASS üretir (AI Engineer teşhisi). Sembolik değer bunu önler.
     """
-    from gozcu.query import VEHICLE_CLASSES
+    from velkoz.query import VEHICLE_CLASSES
     forbid = entry.get("forbid")
     if forbid == "vehicles":
         return set(VEHICLE_CLASSES)
@@ -54,8 +54,8 @@ def _forbidden_hits(hits, forbid_set) -> list:
 def main() -> None:
     import argparse
 
-    from gozcu.config import settings
-    from gozcu.search import search, vlm_available
+    from velkoz.config import settings
+    from velkoz.search import search, vlm_available
 
     # ── Argümanlar: v2 sorgu setleri ve deney klasörleri için (korpus sürümlendirme) ──
     ap = argparse.ArgumentParser()

@@ -18,8 +18,8 @@ import io
 
 import requests
 
-from gozcu.config import settings
-from gozcu.recrop import vlm_frame_for_hit, vlm_image_for_hit
+from velkoz.config import settings
+from velkoz.recrop import vlm_frame_for_hit, vlm_image_for_hit
 
 # ── Sayılamayan kavramlar: "a rain" değil "rain" (dilbilgisi VLM'i şaşırtmasın) ──
 _UNCOUNTABLE = {"rain", "snow", "traffic", "fog", "smoke"}

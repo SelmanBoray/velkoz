@@ -9,14 +9,16 @@ import uuid
 import numpy as np
 from qdrant_client import QdrantClient, models
 
-from gozcu.config import settings
-from gozcu.sampler import FrameRecord
+from velkoz.config import settings
+from velkoz.sampler import FrameRecord
 
 COLLECTION = "frames"
 
 
 def _point_id(video_id: str, frame_idx: int) -> str:
     """Deterministik nokta kimliği — aynı kare iki kez indekslenirse üzerine yazar."""
+    # ── "gozcu:" öneki kalıcı kimliktir, paket adı DEĞİL: değişirse eski indeksler yeniden
+    #    indekslenince üzerine yazmak yerine kopya nokta üretir. Paket velkoz olsa da DOKUNMA. ──
     return str(uuid.uuid5(uuid.NAMESPACE_URL, f"gozcu:{video_id}:{frame_idx}"))
 
 
@@ -36,7 +38,7 @@ class FrameStore:
                 raise
             raise RuntimeError(
                 f"İndeks başka bir süreç tarafından kullanılıyor: {settings.qdrant_path}\n"
-                f"Muhtemel sebep: arayüz (python -m gozcu ui) açıkken indeksleme başlatıldı.\n"
+                f"Muhtemel sebep: arayüz (python -m velkoz ui) açıkken indeksleme başlatıldı.\n"
                 f"Çözüm: diğer Vel'Koz süreçlerini kapat, sonra tekrar dene."
             ) from exc
         self._class_cache: set[str] | None = None  # bulunamadı kapısı için sınıf envanteri
@@ -97,6 +99,7 @@ class FrameStore:
             h, w = rec.image.shape[:2]
             x1, y1, x2, y2 = det.bbox
             points.append(models.PointStruct(
+                # "gozcu:" öneki kalıcı kimlik (bkz. _point_id) — paket adıyla değiştirme
                 id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"gozcu:{rec.video_id}:{rec.frame_idx}:crop:{k}")),
                 vector=vec.tolist(),
                 payload={

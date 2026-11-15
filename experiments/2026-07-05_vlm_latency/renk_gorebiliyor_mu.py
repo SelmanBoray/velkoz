@@ -7,10 +7,10 @@ Diyemezse → model bu iş için umutsuz (yes-bias derin), moondream de kurtarma
 
 import requests
 
-from gozcu.config import settings
-from gozcu.recrop import vlm_image_for_hit
-from gozcu.search import search as run_search
-from gozcu.verifier import _encode
+from velkoz.config import settings
+from velkoz.recrop import vlm_image_for_hit
+from velkoz.search import search as run_search
+from velkoz.verifier import _encode
 
 MODEL = "qwen2.5vl:3b"
 

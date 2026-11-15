@@ -256,7 +256,7 @@ Bu bölüm bilinçli olarak ayrıntılıdır; bilinmeyen sınırlama, bilinenden
 Tüm ölçümler tek komutla tekrarlanabilir:
 
 ```bash
-python -m gozcu doctor                    # ortam denetimi
+python -m velkoz doctor                   # ortam denetimi
 python eval/run_eval.py --queries eval/queries_c2.yaml --out <klasör>
 python eval/faz2_eval.py --out <klasör>   # Ollama gerekir
 ```

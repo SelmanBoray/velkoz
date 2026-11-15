@@ -2,7 +2,7 @@
 
 import time
 
-from gozcu.query import augment_intent, extract_vqa_targets
+from velkoz.query import augment_intent, extract_vqa_targets
 
 CASES = [
     "kırmızı araba",        # kural → car/red (LLM YOK)

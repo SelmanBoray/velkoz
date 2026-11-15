@@ -8,11 +8,11 @@ import json
 
 import requests
 
-from gozcu.config import settings
-from gozcu.query import translate_visual
-from gozcu.recrop import vlm_image_for_hit
-from gozcu.search import search as run_search
-from gozcu.verifier import _encode, _prompt
+from velkoz.config import settings
+from velkoz.query import translate_visual
+from velkoz.recrop import vlm_image_for_hit
+from velkoz.search import search as run_search
+from velkoz.verifier import _encode, _prompt
 
 
 def probe(img_b64: str, english: str, extra: dict, label: str) -> None:

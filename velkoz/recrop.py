@@ -13,7 +13,7 @@ import subprocess
 
 from PIL import Image, ImageDraw
 
-from gozcu.config import settings
+from velkoz.config import settings
 
 
 def frame_at(video_path: str, offset_s: float) -> Image.Image:

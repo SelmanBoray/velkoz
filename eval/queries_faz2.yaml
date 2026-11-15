@@ -6,7 +6,7 @@
 #   has_results — geçerli eşleşme var → ≥1 sonuç dönmeli
 #   any         — outcome iddia EDİLMEZ (korpus içeriği belirsiz); yalnız `forbid` ekseni ölçülür
 # forbid: sonuçlara SIZMAMASI gereken YOLO sınıfları (ayrım ekseni — outcome'dan ortogonal)
-#   vehicles    — sembolik → gozcu.query.VEHICLE_CLASSES. Depodaki yolo_class TÜRKÇE (araba/kamyon/
+#   vehicles    — sembolik → velkoz.query.VEHICLE_CLASSES. Depodaki yolo_class TÜRKÇE (araba/kamyon/
 #                 otobüs); İngilizce liste yazma → kontrol sessizce boşa geçer (AI Engineer uyarısı).
 # Kovalar: negation, attribute (renk), positive_ctrl, hard_negative (renk kıyafete mi araca mı)
 

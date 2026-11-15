@@ -372,7 +372,7 @@ def _llm_parse(visual_text: str) -> dict | None:
     try:
         import requests
 
-        from gozcu.config import settings
+        from velkoz.config import settings
         prompt = (
             "Extract the main search target from this Turkish surveillance-camera query.\n"
             f'Query: "{visual_text}"\n'

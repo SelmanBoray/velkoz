@@ -2,8 +2,8 @@
 'köpek gezdiren adam' ve 'kırmızı kıyafetli adam' neden yanlış gösterdi?
 """
 
-from gozcu.query import extract_vqa_targets
-from gozcu.search import search as run_search, vlm_available
+from velkoz.query import extract_vqa_targets
+from velkoz.search import search as run_search, vlm_available
 
 
 def show(query: str) -> None:

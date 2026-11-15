@@ -16,8 +16,6 @@ otopark işletmecisi, güvenlik görevlisi.
 <p align="center"><sub><code>beyaz araba</code> sorgusu. Adaylar CLIP aramasından gelir; renk ardından bir görsel-dil
 modeliyle doğrulanır. Demo görüntüleri: US DOT/FHWA NGSIM ve Wikimedia Commons, CC BY-SA 4.0.</sub></p>
 
-> Python paketinin ve komut satırının adı `gozcu` (Türkçe "gözcü").
-
 ## Neler sorulabilir
 
 Sorgular Türkçe kalır; sistem onları çeviri katmanı olmadan doğrudan gömer.
@@ -69,28 +67,28 @@ flowchart TD
 ```
 
 - **Çevirisiz Türkçe.** `jinaai/jina-clip-v2` (1024 boyut, çok dilli) Türkçe sorguyu doğrudan
-  görüntü uzayına gömer ([`gozcu/embedder.py`](gozcu/embedder.py)).
+  görüntü uzayına gömer ([`velkoz/embedder.py`](velkoz/embedder.py)).
 - **Küçük öznelere ayrı vektör.** 1080p geniş planda uzaktaki bir insan birkaç düzine pikseldir
   ve tam-kare embedding'de kaybolur. YOLO11m 1280 px'te insan ve araçları tespit eder; her kırpık
-  karesinin yanında ayrı bir vektör olarak indekslenir ([`gozcu/detector.py`](gozcu/detector.py)).
+  karesinin yanında ayrı bir vektör olarak indekslenir ([`velkoz/detector.py`](velkoz/detector.py)).
 - **Örnekleyici ölçüldükten sonra yeniden yazıldı.** İlk tasarım kareleri algısal hash ile
   tekilleştiriyordu; üç piksel boyundaki yürüyen insana kör çıktı. Artık kareler birikimli,
   gürültüsü süzülmüş değişime göre tutuluyor, yanık DVR saati maskeleniyor ve kamera-saat başına
-  kare sayısı sınırlanıyor ([`gozcu/sampler.py`](gozcu/sampler.py),
+  kare sayısı sınırlanıyor ([`velkoz/sampler.py`](velkoz/sampler.py),
   [`experiments/2026-07-03_gercek_cctv_testi/`](experiments/2026-07-03_gercek_cctv_testi/deney_notu.md)).
 - **Niyeti Türkçe morfoloji belirler.** *araçlar**la** dolu otopark* sorgusunda hâl eki "araçlar"ı
   tümleç yapar; baş isim "otopark" olduğu için sorgu sahne sorgusudur ve tam kareler araç
   kırpıklarının selinden yumuşak bir öne çekmeyle korunur. Kök eşleşmesi kökten sonra gelen
   parçanın geçerli bir ek dizisi olduğunu da denetler; böylece *karanlık* artık *kar* olarak
-  okunmuyor ([`gozcu/query.py`](gozcu/query.py)).
+  okunmuyor ([`velkoz/query.py`](velkoz/query.py)).
 - **Küçük VLM, güvenilir olduğu yerde.** Çok alanlı bir JSON kararı doldurması istendiğinde
   `qwen2.5vl:3b` kırmızı bir arabayı 9'da 9 "mavi araba" diye onayladı. Düz evet/hayır sorusunda
   ise kırmızıya 9/9, maviye 0/9 doğru cevap verdi. Bu yüzden doğrulayıcı sorguyu *"Is there a car?"*
-  ve *"Is the car red?"* gibi atomik sorulara böler ([`gozcu/verifier.py`](gozcu/verifier.py),
+  ve *"Is the car red?"* gibi atomik sorulara böler ([`velkoz/verifier.py`](velkoz/verifier.py),
   [`experiments/2026-07-05_vlm_latency/deney_notu.md`](experiments/2026-07-05_vlm_latency/deney_notu.md)).
 - **VLM beklenmez.** Önce CLIP sonuçları görünür; bir işçi thread adayları sırayla doğrular ve
-  her kartın rozeti kararı geldikçe güncellenir ([`gozcu/search.py`](gozcu/search.py),
-  [`gozcu/viewer.py`](gozcu/viewer.py)).
+  her kartın rozeti kararı geldikçe güncellenir ([`velkoz/search.py`](velkoz/search.py),
+  [`velkoz/viewer.py`](velkoz/viewer.py)).
 
 Her tasarım kararı, arkasındaki ölçüm, denenip reddedilenlerle birlikte
 **[ARCHITECTURE.md](ARCHITECTURE.md)** dosyasında (İngilizce). Proje günlüğü:
@@ -153,15 +151,15 @@ python -c "from ultralytics import YOLO; YOLO('yolo11m.pt')"
 ollama pull qwen2.5vl:3b
 
 # 5) kurulumu denetle; arızalı her bileşen için düzeltme komutu yazılır
-python -m gozcu doctor
+python -m velkoz doctor
 ```
 
 Ardından:
 
 ```bash
-python -m gozcu index <video_klasörü>                         # ilk çalıştırma jina-clip-v2'yi indirir (~1.7 GB)
-python -m gozcu search "dün gece otoparka giren siyah SUV"
-python -m gozcu ui                                            # Streamlit arayüzü: http://localhost:8501
+python -m velkoz index <video_klasörü>                        # ilk çalıştırma jina-clip-v2'yi indirir (~1.7 GB)
+python -m velkoz search "dün gece otoparka giren siyah SUV"
+python -m velkoz ui                                           # Streamlit arayüzü: http://localhost:8501
 ```
 
 Ollama yoksa sistem yalnız CLIP ile çalışır ve arayüz bunu bildirir.
@@ -172,9 +170,9 @@ Kamera görüntüsü KVKK kapsamında kişisel veridir; bu yüzden hiçbir şey 
 gitmez. Bu yalnızca söylenmiyor, kodda zorlanıyor:
 
 - jina-clip-v2 önbelleğe girdikten sonra `HF_HUB_OFFLINE=1`, transformers import edilmeden önce
-  kurulur; Hugging Face'e her açılışta yapılan kontrol durur ([`gozcu/config.py`](gozcu/config.py)).
+  kurulur; Hugging Face'e her açılışta yapılan kontrol durur ([`velkoz/config.py`](velkoz/config.py)).
 - YOLO ağırlığı sabit bir yoldan yüklenir; yoksa sessizce indirilmez, program hata verip durur
-  ([`gozcu/detector.py`](gozcu/detector.py)).
+  ([`velkoz/detector.py`](velkoz/detector.py)).
 - VLM'e yalnızca `localhost` üzerindeki Ollama ile ulaşılır.
 - Tüm dış trafik engelliyken indeksleme, arama ve bulunamadı kapısı uçtan uca test edildi
   ([PROGRESS.md](PROGRESS.md), 4–5 Ağustos 2026 kayıtları). `doctor`, çevrimdışı kilidin etkin
@@ -240,7 +238,7 @@ tam künye [`docs/DEMO_KORPUS_LISANS.md`](docs/DEMO_KORPUS_LISANS.md) dosyasınd
 ## Depo yapısı
 
 ```
-gozcu/         paket: örnekleyici, dedektör, embedder, depo, sorgu ayrıştırıcı, arama, doğrulayıcı, arayüz, CLI
+velkoz/        paket: örnekleyici, dedektör, embedder, depo, sorgu ayrıştırıcı, arama, doğrulayıcı, arayüz, CLI
 eval/          dondurulmuş sorgu setleri ve değerlendirme koşucuları
 experiments/   her deney için bir klasör: notlar, raporlar, sonuç JSON'u (görüntü ve video yok)
 scripts/       demo kartı üreticisi ve taşınabilir paket hazırlayıcı

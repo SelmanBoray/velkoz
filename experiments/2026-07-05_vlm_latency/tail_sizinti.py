@@ -4,8 +4,8 @@
 top_k=12 ile koş, her sonucun _vlm var mı (doğrulandı) yoksa None mı (kuyruk) göster.
 """
 
-from gozcu.config import settings
-from gozcu.search import search
+from velkoz.config import settings
+from velkoz.search import search
 
 
 def main() -> None:

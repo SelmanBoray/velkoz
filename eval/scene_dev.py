@@ -24,8 +24,8 @@ LAMBDAS = [0.0, 0.375, 0.75, 1.125]  # 0, λ/2, λ, 1.5λ (robustluk bandı)
 
 def _pool(query: str, k: int) -> list[dict]:
     """Ham skorlu aday havuzu (dedup/boost YOK) — z-boşluğu ölçümü için."""
-    from gozcu.query import parse_query
-    from gozcu.search import get_embedder, get_store
+    from velkoz.query import parse_query
+    from velkoz.search import get_embedder, get_store
     p = parse_query(query)
     vec = get_embedder().encode_text(p.visual_text or query)
     return get_store().search(vec, top_k=k)
@@ -68,9 +68,9 @@ def _first_relevant_rank(results: list[dict], relevant: set) -> int | None:
 
 
 def main() -> None:
-    from gozcu.config import settings
-    from gozcu.query import scene_or_object_intent
-    from gozcu.search import parse_query, search
+    from velkoz.config import settings
+    from velkoz.query import scene_or_object_intent
+    from velkoz.search import parse_query, search
 
     entries = yaml.safe_load((_ROOT / "eval" / "queries_scene_dev.yaml").read_text("utf-8"))
     print(f"{len(entries)} dev sorgusu. Model ısıtılıyor...\n")
